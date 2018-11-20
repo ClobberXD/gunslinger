@@ -56,6 +56,7 @@ If shooter was looking through scope, damage is increased by 20%
 #### Fields passed to `gunslinger.register_gun`
 
 - `itemdef` [table]: Item definition table passed to `minetest.register_item`.
+- `fire_sound` [string]: Name of ogg sound file without extension. Played on fire.
 - `scope_overlay` [string]: Name of scope overlay texture. Must be provided if `scope` is defined. Overlay texture would be stretched across the screen.
 - `clip_size` [number]: Number of bullets per-clip.
 - `fire_rate` [number]: Number of shots per-second.

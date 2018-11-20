@@ -59,6 +59,9 @@ local function fire(stack, player)
 		local point = pointed.intersection_point
 		local dmg = base_dmg * def.dmg_mult
 
+		-- Play sound of gunshot
+		play_sound(def.fire_sound or "gunslinger_fire1")
+
 		-- Add 50% damage if headshot
 		if point.y > target:get_pos().y + 1.5 then
 			dmg = dmg * 1.5
