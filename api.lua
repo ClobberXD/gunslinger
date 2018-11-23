@@ -17,17 +17,17 @@ end
 --
 -- Internal API functions
 
-local function show_scope(player, def)
-	if not player or not def.scope then
+local function show_scope(player, scope, overlay)
+	if not player then
 		return
 	end
 
-	-- Create HUD image
+	-- Create HUD overlay element
 	scope_overlay[player:get_player_name()] = player:hud_add({
 		hud_elem_type = "image",
 		position = {x = 0.5, y = 0.5},
 		alignment = {x = 0, y = 0},
-		text = def.scope_overlay
+		text = overlay
 	})
 end
 
@@ -118,11 +118,12 @@ end
 
 local function on_rclick(stack, player)
 	local def = get_def(stack:get_name())
-	local hud = scope_overlay[player:get_player_name()]
-	if hud then
+	if scope_overlay[player:get_player_name()] then
 		hide_scope(player)
 	else
-		show_scope(player, def)
+		if def.scope then
+			show_scope(player, def.scope, def.scope_overlay)
+		end
 	end
 
 	return stack
