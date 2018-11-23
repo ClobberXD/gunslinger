@@ -102,8 +102,9 @@ local function on_lclick(stack, player)
 		--Reload
 		stack = reload(stack, player)
 	else
-		if def.style_of_fire == "automatic" then
-			automatic[player:get_player_name()] = {
+		local name = player:get_player_name()
+		if def.style_of_fire == "automatic" and not automatic[name] then
+			automatic[name] = {
 				stack  = stack,
 				def    = def
 			}
