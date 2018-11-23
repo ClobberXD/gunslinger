@@ -56,7 +56,7 @@ This file aims to document all the internal and external methods of the `gunslin
 
 ### `fire(stack, player)`
 
-- Responsible for firing one single shot and dealing damage. Reduces ammo based on `clip_size`.
+- Responsible for firing one single shot and dealing damage if required. Reduces ammo based on `clip_size`.
 - `stack` [ItemStack]: ItemStack passed by `on_lclick`.
 - `player` [ObjectRef]: Shooter player passed by `on_lclick`.
 
@@ -96,3 +96,4 @@ This file aims to document all the internal and external methods of the `gunslin
 - `clip_size` [number]: Number of bullets per-clip.
 - `fire_rate` [number]: Number of shots per-second.
 - `dmg_mult` [number]: Damage multiplier value. Final damage is calculated by multiplying `dmg_mult` with the type's `base_dmg`.
+- `range` [number]: Range of fire in number of nodes.

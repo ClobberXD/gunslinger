@@ -47,7 +47,7 @@ local function fire(stack, player)
 	local eye_offset = player:get_eye_offset().offset_first
 	local p1 = vector.add(player:get_pos(), eye_offset)
 	p1 = vector.add(p1, player:get_look_dir())
-	local p2 = vector.add(p1, vector.multiply(player:get_look_dir(), max_dist))
+	local p2 = vector.add(p1, vector.multiply(player:get_look_dir(), def.range))
 	local ray = minetest.raycast(p1, p2)
 	local pointed = ray:next()
 
