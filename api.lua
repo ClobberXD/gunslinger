@@ -5,12 +5,7 @@ local automatic = {}
 local scope_overlay = {}
 
 --
--- Internal API functions
---
-
-local function get_def(name)
-	return guns[name]
-end
+-- Helper functions
 
 local function play_sound(sound, player)
 	minetest.sound_play(sound, {
@@ -19,8 +14,11 @@ local function play_sound(sound, player)
 	})
 end
 
+--
+-- Internal API functions
+
 local function show_scope(player, def)
-	if not player then
+	if not player or not def.scope then
 		return
 	end
 
@@ -45,7 +43,7 @@ end
 
 local function fire(stack, player)
 	-- Take aim
-	local def = get_def(stack:get_name())
+	local def = gunslinger.get_def(stack:get_name())
 	local eye_offset = player:get_eye_offset().offset_first
 	local p1 = vector.add(player:get_pos(), eye_offset)
 	p1 = vector.add(p1, player:get_look_dir())
@@ -99,7 +97,7 @@ end
 
 local function on_lclick(stack, player)
 	local wear = stack:get_wear()
-	local def = get_def(stack:get_name())
+	local def = gunslinger.get_def(stack:get_name())
 	if wear >= 65535 then
 		--Reload
 		stack = reload(stack, player)
@@ -129,12 +127,7 @@ local function on_rclick(stack, player)
 	return stack
 end
 
-local function verify_def(def, is_gun)
-
-end
-
--- Globalstep to handle firing of automatic guns
-minetest.register_globalstep(function(dtime)
+local function on_step(dtime)
 	for name, info in pairs(automatic) do
 		local player = minetest.get_player_by_name(name)
 		if player:get_player_control().LMB then
@@ -145,17 +138,16 @@ minetest.register_globalstep(function(dtime)
 			automatic[name] = nil
 		end
 	end
-end)
+end
+
+minetest.register_globalstep(on_step)
 
 --
--- Ammo
---
+-- External API functions
 
-
-
---
--- Gun registration
---
+function gunslinger.get_def(name)
+	return guns[name]
+end
 
 function gunslinger.register_type(name, def)
 	assert(type(name) == "string" and type(def) == "table",
@@ -183,12 +175,13 @@ function gunslinger.register_gun(name, def)
 			return nodedef.on_rightclick or on_rclick(stack, player)
 		elseif pointed.type == "object" then
 			local entity = pointed.ref:get_luaentity()
+			return entity:on_rightclick(player) or on_rclick(stack, player)
 		end
 	end
 
 	def.style_of_fire = def.style_of_fire or def.type.style_of_fire
-
 	def.wear = math.ceil(65534 / def.clip_size)
+
 	guns[name] = def
 	minetest.register_tool(name, def.itemdef)
 end
