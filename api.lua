@@ -165,8 +165,15 @@ function gunslinger.register_gun(name, def)
 			   "gunslinger.register_type: Invalid params!")
 	assert(not guns[name], "gunslinger.register_gun:"
 			.. " Attempt to register a gun with an existing name!")
-	assert(types[def.type], "gunslinger.register_gun: Attempt to"
-			.. " register gun of non-existent type (" .. def.type .. ")!")
+
+	-- Import type defaults if def.type specified
+	if def.type then
+		assert(types[def.type], "gunslinger.register_gun: Invalid type!")
+
+		for name, val in pairs(types[def.type]) do
+			def[name] = val
+		end
+	end
 
 	def.itemdef.on_use = on_lclick
 	def.itemdef.on_secondary_use = on_rclick
@@ -181,7 +188,6 @@ function gunslinger.register_gun(name, def)
 		end
 	end
 
-	def.style_of_fire = def.style_of_fire or def.type.style_of_fire
 	def.wear = math.ceil(65534 / def.clip_size)
 
 	guns[name] = def

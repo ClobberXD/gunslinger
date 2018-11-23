@@ -1,4 +1,4 @@
-# API documentation
+# `gunslinger` API documentation
 
 This file aims to document all the internal and external methods of the `gunslinger` API.
 
@@ -12,19 +12,19 @@ This file aims to document all the internal and external methods of the `gunslin
 
 ## External API methods
 
-### `gunslinger.register_type(name, typedef)`
+### `gunslinger.register_type(name, def)`
 
 - Registers a type for `name`.
-- `typedef` [table]: [Type definition table](###Type-definition).
+- `def` [table]: [Type definition table](###Type/Gun-definition-table).
 
-### `gunslinger.register_gun(name, gundef)`
+### `gunslinger.register_gun(name, def)`
 
 - Registers a gun with the name `name`.
-- `gundef` [table]: [Gun definition table](###Gun-definition).
+- `def` [table]: [Gun definition table](###Type/Gun-definition-table).
 
 ### `gunslinger.get_def(name)`
 
-- Retrieves the [Gun definition](###Gun-definition) of `name`.
+- Retrieves the [Gun definition table](###Type/Gun-definition-table).
 
 ## Internal API methods
 
@@ -72,28 +72,26 @@ This file aims to document all the internal and external methods of the `gunslin
 - This works by calling `fire` for all guns in the `automatic` table if player's LMB is pressed.
 - If LBM is released, the respective entry is removed from the table.
 
-## Definition tables
+## Type/Gun Definition table
 
-### Type definition
+(Field-name in italics implies that the field is optional)
 
+- `itemdef` [table]: Item definition table passed to `minetest.register_item`. Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden by `gunslinger`.
+- `clip_size` [number]: Number of bullets per-clip.
+- `fire_rate` [number]: Number of shots per-second.
+- `range` [number]: Range of fire in number of nodes.
+- `base_dmg` [number]: Base amount of damage dealt in HP.
 - `style_of_fire` [string]: Sets style of fire.
   - `"manual"`: One shot per-click.
   - `"burst"`: Three rounds per-click.
   - `"splash"`: Shotgun-style pellets; one burst per-click.
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down.
   - `"semi-automatic"`: Same as `"automatic"`, but switches to `"burst"` when scope view is toggled.
+
 - `scope` [string]: Sets style of scope.
   - `"none"`: Default. No sight/scope functionality.
   - `"sight"`: Sight, without zoom. Unrestricted peripheral vision.
   - `"scope"`: Proper scope, with zoom. Restricted peripheral vision.
-- `base_dmg` [number]: Base amount of damage dealt in HP.
 
-### Gun definition
-
-- `itemdef` [table]: Item definition table passed to `minetest.register_item`.
 - `fire_sound` [string]: Name of ogg sound file without extension. Played on fire.
 - `scope_overlay` [string]: Name of scope overlay texture. Must be provided if `scope` is defined. Overlay texture would be stretched across the screen.
-- `clip_size` [number]: Number of bullets per-clip.
-- `fire_rate` [number]: Number of shots per-second.
-- `dmg_mult` [number]: Damage multiplier value. Final damage is calculated by multiplying `dmg_mult` with the type's `base_dmg`.
-- `range` [number]: Range of fire in number of nodes.

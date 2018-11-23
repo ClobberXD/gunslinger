@@ -9,14 +9,12 @@ This mod provides an API to add a variety of realistic and enjoyable guns to Min
 
 ## Architecture
 
-Gunslinger makes use of gun _types_ in order to ease registration of similar guns. A `type` is made up of a name and a table of default values to be applied to all guns registered with that type. At least one type needs to be registered in order to register guns. Guns are also allowed to override their type defaults, for the maximum customisability possible.
+Gunslinger makes use of gun _types_ in order to ease registration of similar guns. A `type` is made up of a name and a table of default values to be applied to all guns registered with that type. Types are optional, and can also be omitted altogether. Guns are allowed to override their type defaults, for maximum customisability. `Raycast` is used to find target in line-of-sight, and all objects including non-player entities take damage.
 
-`Raycast` is used to find target in line-of-sight, and all objects take damage. Damage is calculated as detailed in [Damage calculation](##Damage-calculation)
+Final damage is calculated like so:
 
-## Damage calculation
+- Initial/rated damage = `def.base_dmg`
+- If headshot, damage is increased by 50%
+- If shooter was looking through scope, damage is increased by 20%
 
-Weapon damage = `def.type.base_dmg * def.dmg_mult`
-
-If headshot, damage is increased by 50%
-
-If shooter was looking through scope, damage is increased by 20%
+### See API.md for the complete gunslinger API reference
