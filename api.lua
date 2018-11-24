@@ -48,7 +48,7 @@ local function fire(stack, player)
 	play_sound(def.fire_sound or "gunslinger_fire1")
 
 	-- Take aim
-	local eye_offset = player:get_eye_offset().offset_first
+	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
 	local p1 = vector.add(player:get_pos(), eye_offset)
 	p1 = vector.add(p1, player:get_look_dir())
 	local p2 = vector.add(p1, vector.multiply(player:get_look_dir(), def.range))
@@ -76,7 +76,7 @@ local function fire(stack, player)
 
 	-- Update wear
 	local wear = stack:get_wear()
-	wear = wear + def.wear_step
+	wear = wear + def.unit_wear
 	stack:set_wear(wear)
 
 	return stack
@@ -190,7 +190,7 @@ function gunslinger.register_gun(name, def)
 		end
 	end
 
-	def.wear = math.ceil(65534 / def.clip_size)
+	def.unit_wear = math.ceil(65534 / def.clip_size)
 
 	guns[name] = def
 	minetest.register_tool(name, def.itemdef)
