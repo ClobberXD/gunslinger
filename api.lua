@@ -42,8 +42,12 @@ local function hide_scope(player)
 end
 
 local function fire(stack, player)
-	-- Take aim
 	local def = gunslinger.get_def(stack:get_name())
+
+	-- Play gunshot sound
+	play_sound(def.fire_sound or "gunslinger_fire1")
+
+	-- Take aim
 	local eye_offset = player:get_eye_offset().offset_first
 	local p1 = vector.add(player:get_pos(), eye_offset)
 	p1 = vector.add(p1, player:get_look_dir())
@@ -56,9 +60,6 @@ local function fire(stack, player)
 		local target = pointed.ref
 		local point = pointed.intersection_point
 		local dmg = base_dmg * def.dmg_mult
-
-		-- Play sound of gunshot
-		play_sound(def.fire_sound or "gunslinger_fire1")
 
 		-- Add 50% damage if headshot
 		if point.y > target:get_pos().y + 1.5 then
@@ -74,6 +75,7 @@ local function fire(stack, player)
 	end
 
 	-- Update wear
+	local wear = stack:get_wear()
 	wear = wear + def.wear_step
 	stack:set_wear(wear)
 
