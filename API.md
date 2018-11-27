@@ -10,6 +10,13 @@ This file aims to document all the internal and external methods of the `gunslin
 - `sound` [SimpleSoundSpec]: Sound to be played.
 - `obj` [ObjectRef]: Origin of the played sound.
 
+### `add_auto(name, def)`
+
+- Helper function to add entry to `automatic` table.
+- `def` is cached locally for faster fetching of relevant fields.
+- `name` [string]: Player name.
+- `def` [table]: [Gun definition table](###Type/Gun-definition-table) of wielded item.
+
 ## External API methods
 
 ### `gunslinger.register_type(name, def)`
@@ -73,8 +80,6 @@ This file aims to document all the internal and external methods of the `gunslin
 - If LBM is released, the respective entry is removed from the table.
 
 ## Type/Gun Definition table
-
-(Field-name in italics implies that the field is optional)
 
 - `itemdef` [table]: Item definition table passed to `minetest.register_item`. Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden by `gunslinger`.
 - `clip_size` [number]: Number of bullets per-clip.

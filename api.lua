@@ -14,6 +14,13 @@ local function play_sound(sound, player)
 	})
 end
 
+local function add_auto(name, def)
+	automatic[name] = {
+		def  = def,
+		time = os.time() + (1 / def.fire_rate)
+	}
+end
+
 --
 -- Internal API functions
 
@@ -106,17 +113,11 @@ local function on_lclick(stack, player)
 	else
 		local name = player:get_player_name()
 		if def.style_of_fire == "automatic" and not automatic[name] then
-			automatic[name] = {
-				def  = def,
-				time = os.time() + (1 / def.fire_rate)
-			}
+			add_auto(name, def)
 		elseif def.style_of_fire == "semi-automatic"
 				and not automatic[name] then
 			if scope_overlay[name] then
-				automatic[name] = {
-					def  = def,
-					time = os.time() + (1 / def.fire_rate)
-				}
+				add_auto(name, def)
 			else
 				stack = fire(stack, player, def.burst or 3)
 			end
