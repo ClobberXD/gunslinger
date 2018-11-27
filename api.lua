@@ -110,8 +110,16 @@ local function on_lclick(stack, player)
 				stack  = stack,
 				def    = def
 			}
-		else
-			stack = fire(stack, player)
+		elseif def.style_of_fire == "semi-automatic"
+				and not automatic[name] then
+			if scope_overlay[name] then
+				automatic[name] = {
+					stack = stack,
+					def   = def
+				}
+			else
+				stack = fire(stack, player, def.burst or 3)
+			end
 		end
 	end
 
