@@ -130,7 +130,7 @@ local function on_lclick(stack, player)
 end
 
 local function on_rclick(stack, player)
-	local def = get_def(stack:get_name())
+	local def = gunslinger.get_def(stack:get_name())
 	if scope_overlay[player:get_player_name()] then
 		hide_scope(player)
 	else
