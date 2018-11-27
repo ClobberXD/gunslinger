@@ -107,15 +107,15 @@ local function on_lclick(stack, player)
 		local name = player:get_player_name()
 		if def.style_of_fire == "automatic" and not automatic[name] then
 			automatic[name] = {
-				stack  = stack,
-				def    = def
+				def  = def,
+				time = os.time() + def.fire_rate
 			}
 		elseif def.style_of_fire == "semi-automatic"
 				and not automatic[name] then
 			if scope_overlay[name] then
 				automatic[name] = {
-					stack = stack,
-					def   = def
+					def  = def,
+					time = os.time() + def.fire_rate
 				}
 			else
 				stack = fire(stack, player, def.burst or 3)
@@ -144,7 +144,8 @@ local function on_step(dtime)
 		local player = minetest.get_player_by_name(name)
 		if player:get_player_control().LMB then
 			-- If LMB pressed, fire
-			info.stack = fire(info.stack, player)
+			local stack = player:get_wielded_item()
+			player:set_wielded_item(fire(stack, player))
 		else
 			-- If LMB not pressed, remove player from list
 			automatic[name] = nil
