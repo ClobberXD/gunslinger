@@ -4,6 +4,8 @@ local types = {}
 local automatic = {}
 local scope_overlay = {}
 
+local enable_auto = minetest.settings:get_bool("gunslinger.enable_automatic")
+
 --
 -- Helper functions
 
@@ -187,6 +189,10 @@ function gunslinger.register_gun(name, def)
 		for name, val in pairs(types[def.type]) do
 			def[name] = val
 		end
+	end
+
+	if def.style_of_fire:find("automatic") and not enable_auto then
+		error("Attempt to register gun of disabled type: " .. def.style_of_fire)
 	end
 
 	def.itemdef.on_use = on_lclick
