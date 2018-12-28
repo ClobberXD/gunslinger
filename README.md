@@ -23,6 +23,11 @@ Final damage is calculated like so:
 
 The use of a dedicated list improves performance greatly, as the globalstep would have to otherwise iterate through **all** connected players, check if their mouse button is down, and only then, fire a shot. Nevertheless, disabling automatic guns is recommended on large public servers as it would cause quite a bit of lag, in spite of this optimisation.
 
-`gunslinger` provides a setting `"gunslinger.enable_automatic"`. Disabling this setting throws an error when an automatic gun is registered.
+`gunslinger` provides a setting `"gunslinger.enable_automatic"`. Disabling this setting will throw an error when an automatic gun is registered.
+
+## TODO
+
+- Gun perks (special effects when bullet finds its target)
+- Projectile entity based collision and damage system
 
 ### See API.md for the complete gunslinger API reference
