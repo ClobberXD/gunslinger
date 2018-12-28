@@ -1,10 +1,12 @@
 gunslinger = {}
+
+local max_wear = 65534
+local enable_auto = minetest.settings:get_bool("gunslinger.enable_automatic")
+
 local guns = {}
 local types = {}
 local automatic = {}
 local scope_overlay = {}
-
-local enable_auto = minetest.settings:get_bool("gunslinger.enable_automatic")
 
 --
 -- Helper functions
@@ -86,6 +88,9 @@ local function fire(stack, player)
 	-- Update wear
 	local wear = stack:get_wear()
 	wear = wear + def.unit_wear
+	if wear > max_wear then
+		wear = max_wear
+	end
 	stack:set_wear(wear)
 
 	return stack
@@ -109,11 +114,12 @@ end
 local function on_lclick(stack, player)
 	local wear = stack:get_wear()
 	local def = gunslinger.get_def(stack:get_name())
-	if wear >= 65535 then
+	if wear == max_wear then
 		--Reload
 		stack = reload(stack, player)
 	else
 		local name = player:get_player_name()
+
 		if def.style_of_fire == "automatic" and not automatic[name] then
 			add_auto(name, def)
 		elseif def.style_of_fire == "semi-automatic"
@@ -208,7 +214,7 @@ function gunslinger.register_gun(name, def)
 		end
 	end
 
-	def.unit_wear = math.ceil(65534 / def.clip_size)
+	def.unit_wear = math.ceil(max_wear / def.clip_size)
 
 	guns[name] = def
 	minetest.register_tool(name, def.itemdef)
