@@ -28,6 +28,7 @@ The use of a dedicated list improves performance greatly, as the globalstep woul
 ## TODO
 
 - Gun perks (special effects when bullet finds its target)
-- Projectile entity based collision and damage system
+- Visible projectiles and entity-based collision/damage system.
+- Customisable recoil per-gun.
 
 ### See API.md for the complete gunslinger API reference
