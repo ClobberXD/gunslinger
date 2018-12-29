@@ -198,7 +198,8 @@ function gunslinger.register_gun(name, def)
 	end
 
 	if def.style_of_fire:find("automatic") and not enable_auto then
-		error("Attempt to register gun of disabled type: " .. def.style_of_fire)
+		error("gunslinger: Attempt to register gun of disabled type "
+				.. "'" .. def.style_of_fire .. "''")
 	end
 
 	def.itemdef.on_use = on_lclick
