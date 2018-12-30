@@ -77,7 +77,7 @@ This file aims to document all the internal and external methods of the `gunslin
 
 - This is the globalstep callback that's responsible for firing automatic guns.
 - This works by calling `fire` for all guns in the `automatic` table if player's LMB is pressed.
-- If LBM is released, the respective entry is removed from the table.
+- If LMB is released, the respective entry is removed from the table.
 
 ## Type/Gun Definition table
 
@@ -98,5 +98,5 @@ This file aims to document all the internal and external methods of the `gunslin
   - `"sight"`: Sight, without zoom. Unrestricted peripheral vision.
   - `"scope"`: Proper scope, with zoom. Restricted peripheral vision.
 
-- `fire_sound` [string]: Name of ogg sound file without extension. Played on fire.
+- `fire_sound` [string]: Name of .ogg sound file without extension. Played on fire.
 - `scope_overlay` [string]: Name of scope overlay texture. Must be provided if `scope` is defined. Overlay texture would be stretched across the screen.
