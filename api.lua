@@ -85,6 +85,9 @@ local function fire(stack, player)
 		target:set_hp(target:get_hp() - dmg)
 	end
 
+	-- Projectile particle
+	-- TODO
+
 	-- Update wear
 	local wear = stack:get_wear()
 	wear = wear + def.unit_wear
@@ -94,6 +97,25 @@ local function fire(stack, player)
 	stack:set_wear(wear)
 
 	return stack
+end
+
+local function burst_fire(stack, player)
+	local def = gunslinger.get_def(stack:get_name())
+	local burst = def.burst or 3
+	for i = 1, burst do
+		minetest.after(1 / def.fire_rate, function(st)
+			fire(stack, player)
+		end, stack)
+	end
+	-- Manually add wear to stack, as functions can't return
+	-- values from within minetest.after
+	stack:add_wear(def.unit_wear * burst)
+
+	return stack
+end
+
+local function splash_fire(stack, player)
+	-- TODO
 end
 
 local function reload(stack, player)
@@ -115,7 +137,7 @@ local function on_lclick(stack, player)
 	local wear = stack:get_wear()
 	local def = gunslinger.get_def(stack:get_name())
 	if wear == max_wear then
-		--Reload
+		-- Reload
 		stack = reload(stack, player)
 	else
 		local name = player:get_player_name()
@@ -125,10 +147,16 @@ local function on_lclick(stack, player)
 		elseif def.style_of_fire == "semi-automatic"
 				and not automatic[name] then
 			if scope_overlay[name] then
-				stack = fire(stack, player, def.burst or 3)
+				stack = burst_fire(stack, player)
 			else
 				add_auto(name, def)
 			end
+		elseif def.style_of_fire == "burst" then
+			stack = burst_fire(stack, player)
+		elseif def.style_of_fire == "manual" then
+			stack = fire(stack, player)
+		elseif def.style_of_fire == "splash" then
+			stack = splash_fire(stack, player)
 		end
 	end
 
@@ -163,7 +191,6 @@ local function on_step(dtime)
 		end
 	end
 end
-
 minetest.register_globalstep(on_step)
 
 --

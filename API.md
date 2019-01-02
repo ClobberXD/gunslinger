@@ -67,6 +67,14 @@ This file aims to document all the internal and external methods of the `gunslin
 - `stack` [ItemStack]: ItemStack passed by `on_lclick`.
 - `player` [ObjectRef]: Shooter player passed by `on_lclick`.
 
+### `burst_fire(stack, player)`
+
+- Helper method to fire in burst mode. Takes the same arguments as `fire`.
+
+### `splash_fire(stack, player)`
+
+- Helper method to fire shotgun-style. Takes the same arguments as `fire`.
+
 ### `reload(stack, player)`
 
 - Reloads gun in `stack` if there's ammo in player inventory. Else, plays a click sound.
@@ -81,7 +89,7 @@ This file aims to document all the internal and external methods of the `gunslin
 
 ## Type/Gun Definition table
 
-- `itemdef` [table]: Item definition table passed to `minetest.register_item`. Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden by `gunslinger`.
+- `itemdef` [table]: Item definition table passed to `minetest.register_item`. Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
 - `clip_size` [number]: Number of bullets per-clip.
 - `fire_rate` [number]: Number of shots per-second.
 - `range` [number]: Range of fire in number of nodes.
