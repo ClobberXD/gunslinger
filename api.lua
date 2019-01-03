@@ -9,7 +9,8 @@ local automatic = {}
 local scope_overlay = {}
 
 --
--- Helper functions
+-- Internal API functions
+--
 
 local function play_sound(sound, player)
 	minetest.sound_play(sound, {
@@ -24,9 +25,6 @@ local function add_auto(name, def)
 		time = os.time() + (1 / def.fire_rate)
 	}
 end
-
---
--- Internal API functions
 
 local function show_scope(player, scope, overlay)
 	if not player then
@@ -191,10 +189,14 @@ local function on_step(dtime)
 		end
 	end
 end
-minetest.register_globalstep(on_step)
+
+if enable_auto then
+	minetest.register_globalstep(on_step)
+end
 
 --
 -- External API functions
+--
 
 function gunslinger.get_def(name)
 	return guns[name]

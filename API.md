@@ -2,21 +2,6 @@
 
 This file aims to document all the internal and external methods of the `gunslinger` API.
 
-## Helper functions
-
-### `play_sound(sound, obj)`
-
-- Helper function to play object-centric sound.
-- `sound` [SimpleSoundSpec]: Sound to be played.
-- `obj` [ObjectRef]: Origin of the played sound.
-
-### `add_auto(name, def)`
-
-- Helper function to add entry to `automatic` table.
-- `def` is cached locally for faster fetching of relevant fields.
-- `name` [string]: Player name.
-- `def` [table]: [Gun definition table](###Type/Gun-definition-table) of wielded item.
-
 ## External API methods
 
 ### `gunslinger.register_type(name, def)`
@@ -34,6 +19,19 @@ This file aims to document all the internal and external methods of the `gunslin
 - Retrieves the [Gun definition table](###Type/Gun-definition-table).
 
 ## Internal API methods
+
+### `play_sound(sound, obj)`
+
+- Helper function to play object-centric sound.
+- `sound` [SimpleSoundSpec]: Sound to be played.
+- `obj` [ObjectRef]: Origin of the played sound.
+
+### `add_auto(name, def)`
+
+- Helper function to add entry to `automatic` table.
+- `def` is cached locally for faster fetching of relevant fields.
+- `name` [string]: Player name.
+- `def` [table]: [Gun definition table](###Type/Gun-definition-table) of wielded item.
 
 ### `show_scope(player, def)`
 
