@@ -101,8 +101,8 @@ local function burst_fire(stack, player)
 	local def = gunslinger.get_def(stack:get_name())
 	local burst = def.burst or 3
 	for i = 1, burst do
-		minetest.after(1 / def.fire_rate, function(st)
-			fire(stack, player)
+		minetest.after(i / def.fire_rate, function(st)
+			fire(st, player)
 		end, stack)
 	end
 	-- Manually add wear to stack, as functions can't return
