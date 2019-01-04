@@ -227,6 +227,11 @@ function gunslinger.register_gun(name, def)
 		end
 	end
 
+	-- Abort when making use of unimplemented features
+	if def.style_of_fire == "splash" or def.zoom then
+		error("register_gun: Unimplemented feature!")
+	end
+
 	if def.style_of_fire:find("automatic") and not lite then
 		error("gunslinger.register_gun: Attempt to register gun of"
 				.. " disabled type '" .. def.style_of_fire .. "'")
