@@ -53,6 +53,10 @@ end
 local function fire(stack, player)
 	local def = gunslinger.get_def(stack:get_name())
 
+	if not def or not stack then
+		return
+	end
+
 	-- Play gunshot sound
 	play_sound(def.fire_sound or "gunslinger_fire1")
 
