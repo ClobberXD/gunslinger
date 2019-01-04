@@ -116,27 +116,24 @@ local function splash_fire(stack, player)
 	-- TODO
 end
 
-local function reload(stack, player)
-	-- Check for ammo
-	local inv = player:get_inventory()
-	if inv:contains_item("main", "gunslinger:ammo") then
-		-- Ammo exists, reload and reset wear
-		inv:remove_item("main", "gunslinger:ammo")
-		stack:set_wear(0)
-	else
-		-- No ammo, play click sound
-		play_sound("gunslinger_ooa", player)
+local function on_lclick(stack, player)
+	if not stack or not player then
+		return
 	end
 
-	return stack
-end
-
-local function on_lclick(stack, player)
 	local wear = stack:get_wear()
 	local def = gunslinger.get_def(stack:get_name())
 	if wear == max_wear then
-		-- Reload
-		stack = reload(stack, player)
+		-- Check for ammo
+		local inv = player:get_inventory()
+		if inv:contains_item("main", "gunslinger:ammo") then
+			-- Ammo exists, reload and reset wear
+			inv:remove_item("main", "gunslinger:ammo")
+			stack:set_wear(0)
+		else
+			-- No ammo, play click sound
+			play_sound("gunslinger_ooa", player)
+		end
 	else
 		local name = player:get_player_name()
 

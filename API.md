@@ -62,6 +62,7 @@ This file aims to document all the internal and external methods of the `gunslin
 ### `fire(stack, player)`
 
 - Responsible for firing one single shot and dealing damage if required. Reduces ammo based on `clip_size`.
+- If gun is worn out, reloads gun in `stack` if there's ammo in player inventory; else, plays a click sound.
 - `stack` [ItemStack]: ItemStack passed by `on_lclick`.
 - `player` [ObjectRef]: Shooter player passed by `on_lclick`.
 
@@ -72,12 +73,6 @@ This file aims to document all the internal and external methods of the `gunslin
 ### `splash_fire(stack, player)`
 
 - Helper method to fire shotgun-style. Takes the same arguments as `fire`.
-
-### `reload(stack, player)`
-
-- Reloads gun in `stack` if there's ammo in player inventory. Else, plays a click sound.
-- `stack` [ItemStack]: ItemStack passed by `on_lclick`.
-- `player` [ObjectRef]: Shooter player passed by `on_lclick`.
 
 ### `on_step(dtime)`
 
