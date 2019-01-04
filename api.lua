@@ -26,7 +26,7 @@ local function add_auto(name, def)
 	}
 end
 
-local function show_scope(player, scope, overlay)
+local function show_scope(player, scope, zoom)
 	if not player then
 		return
 	end
@@ -36,7 +36,7 @@ local function show_scope(player, scope, overlay)
 		hud_elem_type = "image",
 		position = {x = 0.5, y = 0.5},
 		alignment = {x = 0, y = 0},
-		text = overlay
+		text = scope
 	})
 end
 
@@ -228,8 +228,8 @@ function gunslinger.register_gun(name, def)
 	end
 
 	if def.style_of_fire:find("automatic") and not lite then
-		error("gunslinger: Attempt to register gun of disabled type '"
-				.. def.style_of_fire .. "'")
+		error("gunslinger.register_gun: Attempt to register gun of"
+				.. " disabled type '" .. def.style_of_fire .. "'")
 	end
 
 	def.itemdef.on_use = on_lclick
@@ -243,6 +243,10 @@ function gunslinger.register_gun(name, def)
 			local entity = pointed.ref:get_luaentity()
 			return entity:on_rightclick(player) or on_rclick(stack, player)
 		end
+	end
+
+	if def.zoom and not def.scope then
+		error("gunslinger.register_gun: zoom requires scope to be defined!")
 	end
 
 	def.unit_wear = math.ceil(max_wear / def.clip_size)

@@ -33,11 +33,11 @@ This file aims to document all the internal and external methods of the `gunslin
 - `name` [string]: Player name.
 - `def` [table]: [Gun definition table](###Type/Gun-definition-table) of wielded item.
 
-### `show_scope(player, def)`
+### `show_scope(player, scope, zoom)`
 
 - Activates gun scope, handles placement of HUD scope element.
 - `player` [ObjectRef]: Player obj. used for HUD element creation.
-- `def` [Gun Definition]: Gun def used for retrieving scope type and scope overlay.
+- `scope` and `zoom`: Gun definition fields.
 
 ### `hide_scope(player)`
 
@@ -82,7 +82,8 @@ This file aims to document all the internal and external methods of the `gunslin
 
 ## Type/Gun Definition table
 
-- `itemdef` [table]: Item definition table passed to `minetest.register_item`. Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
+- `itemdef` [table]: Item definition table passed to `minetest.register_item`.
+  - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
 - `clip_size` [number]: Number of bullets per-clip.
 - `fire_rate` [number]: Number of shots per-second.
 - `range` [number]: Range of fire in number of nodes.
@@ -90,14 +91,13 @@ This file aims to document all the internal and external methods of the `gunslin
 - `style_of_fire` [string]: Sets style of fire.
   - `"manual"`: One shot per-click.
   - `"burst"`: Three rounds per-click.
-  - `"splash"`: Shotgun-style pellets; one burst per-click.
+  - `"splash"`: **(WARNING: Unimplemented)** Shotgun-style pellets; one burst per-click.
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down.
   - `"semi-automatic"`: Same as `"automatic"`, but switches to `"burst"` when scope view is toggled.
 
-- `scope` [string]: Sets style of scope.
-  - `"none"`: Default. No sight/scope functionality.
-  - `"sight"`: Sight, without zoom. Unrestricted peripheral vision.
-  - `"scope"`: Proper scope, with zoom. Restricted peripheral vision.
+- `scope` [string]: Name of scope overlay texture.
+  - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.
+- `zoom` [number]: **(WARNING: Unimplemented)** Sets player FOV in degrees when scope is enabled (defaults to 0, i.e. no zoom)
+  - Requires `scope` to be defined.
 
-- `fire_sound` [string]: Name of .ogg sound file without extension. Played on fire.
-- `scope_overlay` [string]: Name of scope overlay texture. Must be provided if `scope` is defined. Overlay texture would be stretched across the screen.
+- `fire_sound` [string]: Name of .ogg sound file without extension. Played on gun-fire.
