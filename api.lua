@@ -1,7 +1,7 @@
 gunslinger = {}
 
 local max_wear = 65534
-local enable_auto = minetest.settings:get_bool("gunslinger.enable_automatic")
+local lite = minetest.settings:get_bool("gunslinger.lite")
 
 local guns = {}
 local types = {}
@@ -191,7 +191,7 @@ local function on_step(dtime)
 	end
 end
 
-if enable_auto then
+if lite then
 	minetest.register_globalstep(on_step)
 end
 
@@ -227,9 +227,9 @@ function gunslinger.register_gun(name, def)
 		end
 	end
 
-	if def.style_of_fire:find("automatic") and not enable_auto then
-		error("gunslinger: Attempt to register gun of disabled type "
-				.. "'" .. def.style_of_fire .. "''")
+	if def.style_of_fire:find("automatic") and not lite then
+		error("gunslinger: Attempt to register gun of disabled type '"
+				.. def.style_of_fire .. "'")
 	end
 
 	def.itemdef.on_use = on_lclick
