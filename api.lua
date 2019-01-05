@@ -7,6 +7,7 @@ local guns = {}
 local types = {}
 local automatic = {}
 local scope_overlay = {}
+local interval = {}
 
 --
 -- Internal API functions
@@ -141,6 +142,10 @@ local function on_lclick(stack, player)
 	else
 		local name = player:get_player_name()
 
+		if interval[name] and os.time() < interval[name] then
+			return
+		end
+
 		if def.style_of_fire == "automatic" and not automatic[name] then
 			add_auto(name, def)
 		elseif def.style_of_fire == "semi-automatic"
@@ -157,6 +162,8 @@ local function on_lclick(stack, player)
 		elseif def.style_of_fire == "splash" then
 			stack = splash_fire(stack, player)
 		end
+
+		interval[name] = os.time + def.unit_time
 	end
 
 	return stack
@@ -179,10 +186,11 @@ local function on_step(dtime)
 	for name, info in pairs(automatic) do
 		local player = minetest.get_player_by_name(name)
 		if player:get_player_control().LMB then
-			if os.time() > info.time then
+			if os.time() > interval[name] then
 				-- If LMB pressed, fire
 				local stack = player:get_wielded_item()
 				player:set_wielded_item(fire(stack, player))
+				interval[name] = os.time() + info.def.unit_time
 			end
 		else
 			-- If LMB not pressed, remove player from list
@@ -255,6 +263,7 @@ function gunslinger.register_gun(name, def)
 	end
 
 	def.unit_wear = math.ceil(max_wear / def.clip_size)
+	def.unit_time = math.ceil(1 / def.fire_rate)
 
 	guns[name] = def
 	minetest.register_tool(name, def.itemdef)
