@@ -191,7 +191,7 @@ local function on_step(dtime)
 	end
 end
 
-if lite then
+if not lite then
 	minetest.register_globalstep(on_step)
 end
 
