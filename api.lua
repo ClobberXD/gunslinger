@@ -20,10 +20,10 @@ local function play_sound(sound, player)
 	})
 end
 
-local function add_auto(name, def)
+local function add_auto(name, def, stack)
 	automatic[name] = {
-		def  = def,
-		time = os.time() + (1 / def.fire_rate)
+		def   = def,
+		stack = stack
 	}
 end
 
@@ -147,7 +147,7 @@ local function on_lclick(stack, player)
 		end
 
 		if def.style_of_fire == "automatic" and not automatic[name] then
-			add_auto(name, def)
+			add_auto(name, def, stack)
 		elseif def.style_of_fire == "semi-automatic"
 				and not automatic[name] then
 			if scope_overlay[name] then
@@ -185,16 +185,22 @@ end
 local function on_step(dtime)
 	for name, info in pairs(automatic) do
 		local player = minetest.get_player_by_name(name)
-		if player:get_player_control().LMB then
-			if os.time() > interval[name] then
-				-- If LMB pressed, fire
-				local stack = player:get_wielded_item()
-				player:set_wielded_item(fire(stack, player))
-				interval[name] = os.time() + info.def.unit_time
-			end
-		else
-			-- If LMB not pressed, remove player from list
+		if not player then
 			automatic[name] = nil
+			return
+		end
+
+		if os.time() > interval[name] then
+			if player:get_player_control().LMB then
+				-- If LMB pressed, fire
+				info.stack = fire(info.stack, player)
+				player:set_wielded_item(info.stack)
+				automatic[name].stack = info.stack
+				interval[name] = os.time() + info.def.unit_time
+			else
+				-- If LMB not pressed, remove player from list
+				automatic[name] = nil
+			end
 		end
 	end
 end

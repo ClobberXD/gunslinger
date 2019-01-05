@@ -26,12 +26,13 @@ This file aims to document all the internal and external methods of the `gunslin
 - `sound` [SimpleSoundSpec]: Sound to be played.
 - `obj` [ObjectRef]: Origin of the played sound.
 
-### `add_auto(name, def)`
+### `add_auto(name, def, stack)`
 
-- Helper function to add entry to `automatic` table.
-- `def` is cached locally for faster fetching of relevant fields.
+- Helper function to add player entry to `automatic` table.
+- `def` and `stack` are cached locally for improved performance.
 - `name` [string]: Player name.
 - `def` [table]: [Gun definition table](###Type/Gun-definition-table) of wielded item.
+- `stack` [itemstack]: Itemstack of wielded item.
 
 ### `show_scope(player, scope, zoom)`
 
