@@ -11,6 +11,9 @@ This mod provides an API to add a variety of realistic and enjoyable guns to Min
 
 - `gunslinger.lite` [`bool`] (defaults to `false`)
   - Toggles [lite mode](###Lite-mode)
+- `gunslinger.disable_builtin` [`bool`] (defaults to `false`)
+  - Enables/Disables builtin guns - only the API will be provided.
+  - Useful if mods/games provide custom guns.
 
 ## Architecture
 
