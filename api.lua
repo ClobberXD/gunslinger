@@ -246,9 +246,9 @@ function gunslinger.register_gun(name, def)
 		error("register_gun: Unimplemented feature!")
 	end
 
-	if def.style_of_fire:find("automatic") and not lite then
-		error("gunslinger.register_gun: Attempt to register gun of"
-				.. " disabled type '" .. def.style_of_fire .. "'")
+	if def.style_of_fire:find("automatic") and lite then
+		error("gunslinger.register_gun: Attempt to register gun of " ..
+				"type '" .. def.style_of_fire .. "' when lite mode is enabled")
 	end
 
 	def.itemdef.on_use = on_lclick
