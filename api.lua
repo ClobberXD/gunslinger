@@ -163,7 +163,7 @@ local function on_lclick(stack, player)
 			stack = splash_fire(stack, player)
 		end
 
-		interval[name] = os.time + def.unit_time
+		interval[name] = os.time() + def.unit_time
 	end
 
 	return stack
