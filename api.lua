@@ -60,9 +60,7 @@ local function fire(stack, player)
 	local def = gunslinger.get_def(stack:get_name())
 
 	-- Play gunshot sound
-	local default_fire_sound = (def.style_of_fire ~= "splash")
-			and "gunslinger_fire1" or "gunslinger_fire2"
-	play_sound(def.fire_sound or default_fire_sound)
+	play_sound(def.fire_sound)
 
 	-- Take aim
 	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
@@ -265,6 +263,11 @@ function gunslinger.register_gun(name, def)
 			local entity = pointed.ref:get_luaentity()
 			return entity:on_rightclick(player) or on_rclick(stack, player)
 		end
+	end
+
+	if not def.fire_sound then
+		def.fire_sound = (def.style_of_fire ~= "splash")
+			and "gunslinger_fire1" or "gunslinger_fire2"
 	end
 
 	if def.zoom and not def.scope then
