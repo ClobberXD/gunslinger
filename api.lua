@@ -27,6 +27,8 @@ local function add_auto(name, def, stack)
 	}
 end
 
+--------------------------------
+
 local function show_scope(player, scope, zoom)
 	if not player then
 		return
@@ -49,6 +51,23 @@ local function hide_scope(player)
 	local name = player:get_player_name()
 	player:hud_remove(scope_overlay[name])
 	scope_overlay[name] = nil
+end
+
+--------------------------------
+
+local function reload(stack, player)
+	-- Check for ammo
+	local inv = player:get_inventory()
+	if inv:contains_item("main", "gunslinger:ammo") then
+		-- Ammo exists, reload and reset wear
+		inv:remove_item("main", "gunslinger:ammo")
+		stack:set_wear(0)
+	else
+		-- No ammo, play click sound
+		play_sound("gunslinger_ooa", player)
+	end
+
+	return stack
 end
 
 local function fire(stack, player)
@@ -122,6 +141,8 @@ local function splash_fire(stack, player)
 	-- TODO
 end
 
+--------------------------------
+
 local function on_lclick(stack, player)
 	if not stack or not player then
 		return
@@ -130,42 +151,32 @@ local function on_lclick(stack, player)
 	local wear = stack:get_wear()
 	local def = gunslinger.get_def(stack:get_name())
 	if wear == max_wear then
-		-- Check for ammo
-		local inv = player:get_inventory()
-		if inv:contains_item("main", "gunslinger:ammo") then
-			-- Ammo exists, reload and reset wear
-			inv:remove_item("main", "gunslinger:ammo")
-			stack:set_wear(0)
-		else
-			-- No ammo, play click sound
-			play_sound("gunslinger_ooa", player)
-		end
-	else
-		local name = player:get_player_name()
+		return reload(stack, player)
+	end
 
-		if interval[name] and os.time() < interval[name] then
-			return
-		end
+	local name = player:get_player_name()
+	if interval[name] and os.time() < interval[name] then
+		return
+	end
 
-		if def.style_of_fire == "automatic" and not automatic[name] then
-			add_auto(name, def, stack)
-		elseif def.style_of_fire == "semi-automatic"
-				and not automatic[name] then
-			if scope_overlay[name] then
-				stack = burst_fire(stack, player)
-			else
-				add_auto(name, def)
-			end
-		elseif def.style_of_fire == "burst" then
+	if def.style_of_fire == "automatic" and not automatic[name] then
+		add_auto(name, def, stack)
+	elseif def.style_of_fire == "semi-automatic"
+			and not automatic[name] then
+		if scope_overlay[name] then
 			stack = burst_fire(stack, player)
+		else
+			add_auto(name, def)
+		end
+	elseif def.style_of_fire == "burst" then
+		stack = burst_fire(stack, player)
 		elseif def.style_of_fire == "manual" then
 			stack = fire(stack, player)
 		elseif def.style_of_fire == "splash" then
 			stack = splash_fire(stack, player)
 		end
 
-		interval[name] = os.time() + def.unit_time
-	end
+	interval[name] = os.time() + def.unit_time
 
 	return stack
 end
@@ -182,6 +193,8 @@ local function on_rclick(stack, player)
 
 	return stack
 end
+
+--------------------------------
 
 local function on_step(dtime)
 	for name, info in pairs(automatic) do
