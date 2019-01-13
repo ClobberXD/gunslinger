@@ -60,7 +60,9 @@ local function fire(stack, player)
 	local def = gunslinger.get_def(stack:get_name())
 
 	-- Play gunshot sound
-	play_sound(def.fire_sound or "gunslinger_fire1")
+	local default_fire_sound = (def.style_of_fire ~= "splash")
+			and "gunslinger_fire1" or "gunslinger_fire2"
+	play_sound(def.fire_sound or default_fire_sound)
 
 	-- Take aim
 	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
