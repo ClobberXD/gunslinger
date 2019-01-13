@@ -48,9 +48,9 @@ This file aims to document all the internal and external methods of the `gunslin
 ### `on_lclick(stack, player)`
 
 - `on_use` callback for all registered guns. This is where most of the firing logic happens.
-- Handles gun firing depending on their `style_of_fire`.
+- Handles gun firing depending on their `mode`.
 - [`reload`] is called when the gun's magazine is empty.
-- If `style_of_fire` is `"automatic"`, an entry is added to the `automatic` table which is parsed by the `on_step` globalstep.
+- If `mode` is `"automatic"`, an entry is added to the `automatic` table which is parsed by `on_step`.
 - `stack` [ItemStack]: ItemStack of wielditem.
 - `player` [ObjectRef]: ObjectRef of user.
 
@@ -89,12 +89,13 @@ This file aims to document all the internal and external methods of the `gunslin
 - `fire_rate` [number]: Number of shots per-second.
 - `range` [number]: Range of fire in number of nodes.
 - `base_dmg` [number]: Base amount of damage dealt in HP.
-- `style_of_fire` [string]: Sets style of fire.
-  - `"manual"`: One shot per-click.
+- `mode` [string]: Firing mode.
+  - `"manual"`: One shot per-click, but requires manual loading for every round; aka Bolt-action.
+  - `"semi-automatic"`: One shot per-click.
   - `"burst"`: Three rounds per-click.
   - `"splash"`: **(WARNING: Unimplemented)** Shotgun-style pellets; one burst per-click.
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down.
-  - `"semi-automatic"`: Same as `"automatic"`, but switches to `"burst"` when scope view is toggled.
+  - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
 
 - `scope` [string]: Name of scope overlay texture.
   - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.

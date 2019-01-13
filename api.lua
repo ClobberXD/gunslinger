@@ -159,22 +159,31 @@ local function on_lclick(stack, player)
 		return
 	end
 
-	if def.style_of_fire == "automatic" and not automatic[name] then
+	if def.mode == "automatic" and not automatic[name] then
 		add_auto(name, def, stack)
-	elseif def.style_of_fire == "semi-automatic"
+	elseif def.mode == "hybrid"
 			and not automatic[name] then
 		if scope_overlay[name] then
 			stack = burst_fire(stack, player)
 		else
 			add_auto(name, def)
 		end
-	elseif def.style_of_fire == "burst" then
+	elseif def.mode == "burst" then
 		stack = burst_fire(stack, player)
-		elseif def.style_of_fire == "manual" then
+	elseif def.mode == "splash" then
+		stack = splash_fire(stack, player)
+	elseif def.mode == "semi-automatic" then
+		stack = fire(stack, player)
+	elseif def.mode == "manual" then
+		local meta = stack:get_meta()
+		if meta:contains("loaded") then
 			stack = fire(stack, player)
-		elseif def.style_of_fire == "splash" then
-			stack = splash_fire(stack, player)
+			meta:set_string("loaded", "")
+		else
+			stack = reload(stack, player)
+			meta:set_string("loaded", "true")
 		end
+	end
 
 	interval[name] = os.time() + def.unit_time
 
@@ -256,13 +265,14 @@ function gunslinger.register_gun(name, def)
 	end
 
 	-- Abort when making use of unimplemented features
-	if def.style_of_fire == "splash" or def.zoom then
+	if def.mode == "splash" or def.zoom then
 		error("register_gun: Unimplemented feature!")
 	end
 
-	if def.style_of_fire:find("automatic") and lite then
+	if (def.mode == "automatic" or def.mode == "hybrid")
+			and lite then
 		error("gunslinger.register_gun: Attempt to register gun of " ..
-				"type '" .. def.style_of_fire .. "' when lite mode is enabled")
+				"type '" .. def.mode .. "' when lite mode is enabled")
 	end
 
 	def.itemdef.on_use = on_lclick
@@ -279,7 +289,7 @@ function gunslinger.register_gun(name, def)
 	end
 
 	if not def.fire_sound then
-		def.fire_sound = (def.style_of_fire ~= "splash")
+		def.fire_sound = (def.mode ~= "splash")
 			and "gunslinger_fire1" or "gunslinger_fire2"
 	end
 
