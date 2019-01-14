@@ -7,16 +7,16 @@ This file aims to document all the internal and external methods of the `gunslin
 ### `gunslinger.register_type(name, def)`
 
 - Registers a type for `name`.
-- `def` [table]: [Type definition table](###Type/Gun-definition-table).
+- `def` [table]: [Gun definition table](###Gun-definition-table).
 
 ### `gunslinger.register_gun(name, def)`
 
 - Registers a gun with the name `name`.
-- `def` [table]: [Gun definition table](###Type/Gun-definition-table).
+- `def` [table]: [Gun definition table](###Gun-definition-table).
 
 ### `gunslinger.get_def(name)`
 
-- Retrieves the [Gun definition table](###Type/Gun-definition-table).
+- Retrieves the [Gun definition table](###Gun-definition-table).
 
 ## Internal API methods
 
@@ -31,7 +31,7 @@ This file aims to document all the internal and external methods of the `gunslin
 - Helper function to add player entry to `automatic` table.
 - `def` and `stack` are cached locally for improved performance.
 - `name` [string]: Player name.
-- `def` [table]: [Gun definition table](###Type/Gun-definition-table) of wielded item.
+- `def` [table]: [Gun definition table](###Gun-definition-table) of wielded item.
 - `stack` [itemstack]: Itemstack of wielded item.
 
 ### `show_scope(player, scope, zoom)`
@@ -81,7 +81,7 @@ This file aims to document all the internal and external methods of the `gunslin
 - This works by calling `fire` for all guns in the `automatic` table if player's LMB is pressed.
 - If LMB is released, the respective entry is removed from the table.
 
-## Type/Gun Definition table
+## Gun Definition table
 
 - `itemdef` [table]: Item definition table passed to `minetest.register_item`.
   - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
@@ -92,7 +92,7 @@ This file aims to document all the internal and external methods of the `gunslin
 - `mode` [string]: Firing mode.
   - `"manual"`: One shot per-click, but requires manual loading for every round; aka Bolt-action.
   - `"semi-automatic"`: One shot per-click.
-  - `"burst"`: Three rounds per-click.
+  - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3.
   - `"splash"`: **(WARNING: Unimplemented)** Shotgun-style pellets; one burst per-click.
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down.
   - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
