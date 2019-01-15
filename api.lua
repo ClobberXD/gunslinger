@@ -71,12 +71,15 @@ local function reload(stack, player)
 end
 
 local function fire(stack, player)
-	-- Workaround to prevent function from executing if stack is nil
+	-- Workaround to prevent function from running if stack is nil
 	if not stack then
 		return
 	end
 
 	local def = gunslinger.get_def(stack:get_name())
+	if not def then
+		return
+	end
 
 	-- Play gunshot sound
 	play_sound(def.fire_sound)
