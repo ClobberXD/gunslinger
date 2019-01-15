@@ -86,11 +86,25 @@ local function fire(stack, player)
 
 	-- Take aim
 	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
+	local dir = player:get_look_dir()
 	local p1 = vector.add(player:get_pos(), eye_offset)
-	p1 = vector.add(p1, player:get_look_dir())
-	local p2 = vector.add(p1, vector.multiply(player:get_look_dir(), def.range))
+	p1 = vector.add(p1, dir)
+	local p2 = vector.add(p1, vector.multiply(dir, def.range))
 	local ray = minetest.raycast(p1, p2)
 	local pointed = ray:next()
+
+	-- Projectile particle
+	minetest.add_particle({
+		pos = p1,
+		velocity = vector.multiply(dir, 400),
+		acceleration = {x = 0, y = 0, z = 0},
+		expirationtime = 2,
+		size = 1,
+		collisiondetection = true,
+		collision_removal = true,
+		object_collision = true,
+		glow = 3
+	})
 
 	-- Fire!
 	if pointed and pointed.type == "object" then
@@ -110,9 +124,6 @@ local function fire(stack, player)
 
 		target:set_hp(target:get_hp() - dmg)
 	end
-
-	-- Projectile particle
-	-- TODO
 
 	-- Update wear
 	local wear = stack:get_wear()
