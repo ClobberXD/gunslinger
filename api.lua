@@ -108,7 +108,7 @@ local function fire(stack, player)
 		collisiondetection = true,
 		collision_removal = true,
 		object_collision = true,
-		glow = 3
+		glow = 5
 	})
 
 	-- Fire!
@@ -248,7 +248,6 @@ local function on_step(dtime)
 		end
 	end
 end
-end
 
 if not lite then
 	minetest.register_globalstep(on_step)
@@ -320,7 +319,7 @@ function gunslinger.register_gun(name, def)
 	end
 
 	def.unit_wear = math.ceil(max_wear / def.clip_size)
-	def.unit_time = math.ceil(1 / def.fire_rate)
+	def.unit_time = 1 / def.fire_rate
 
 	guns[name] = def
 	minetest.register_tool(name, def.itemdef)

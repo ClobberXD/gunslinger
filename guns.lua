@@ -6,7 +6,7 @@ gunslinger.register_gun("gunslinger:cheetah", {
 		wield_scale = {x = 4, y = 4, z = 1}
 	},
 
-	mode = "burst",
+	mode = "automatic",
 	base_dmg = 1,
 	fire_rate = 6,
 	clip_size = 50,
