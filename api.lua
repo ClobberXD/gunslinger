@@ -78,7 +78,12 @@ local function fire(stack, player)
 
 	local def = gunslinger.get_def(stack:get_name())
 	if not def then
-		return
+		return stack
+	end
+
+	local wear = stack:get_wear()
+	if wear == max_wear then
+		return reload(stack, player)
 	end
 
 	-- Play gunshot sound
@@ -162,10 +167,9 @@ local function on_lclick(stack, player)
 		return
 	end
 
-	local wear = stack:get_wear()
 	local def = gunslinger.get_def(stack:get_name())
-	if wear == max_wear then
-		return reload(stack, player)
+	if not def then
+		return
 	end
 
 	local name = player:get_player_name()
