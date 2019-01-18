@@ -169,9 +169,10 @@ local function on_lclick(stack, player)
 	end
 
 	local name = player:get_player_name()
-	if interval[name] and os.time() < interval[name] then
+	if interval[name] and interval[name] < def.unit_time then
 		return
 	end
+	interval[name] = 0
 
 	if def.mode == "automatic" and not automatic[name] then
 		add_auto(name, def, stack)
@@ -199,8 +200,6 @@ local function on_lclick(stack, player)
 		end
 	end
 
-	interval[name] = os.time() + def.unit_time
-
 	return stack
 end
 
@@ -227,19 +226,23 @@ local function on_step(dtime)
 			return
 		end
 
-		if os.time() > interval[name] then
-			if player:get_player_control().LMB then
-				-- If LMB pressed, fire
-				info.stack = fire(info.stack, player)
-				player:set_wielded_item(info.stack)
-				automatic[name].stack = info.stack
-				interval[name] = os.time() + info.def.unit_time
-			else
-				-- If LMB not pressed, remove player from list
-				automatic[name] = nil
-			end
+		interval[name] = interval[name] + dtime
+		if interval[name] < info.def.unit_time then
+			return
+		end
+
+		if player:get_player_control().LMB then
+			-- If LMB pressed, fire
+			info.stack = fire(info.stack, player)
+			player:set_wielded_item(info.stack)
+			automatic[name].stack = info.stack
+			interval[name] = 0
+		else
+			-- If LMB not pressed, remove player from list
+			automatic[name] = nil
 		end
 	end
+end
 end
 
 if not lite then
