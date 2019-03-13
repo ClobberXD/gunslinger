@@ -71,10 +71,6 @@ This file aims to document all the internal and external methods of the `gunslin
 
 - Helper method to fire in burst mode. Takes the same arguments as `fire`.
 
-### `splash_fire(stack, player)`
-
-- Helper method to fire shotgun-style. Takes the same arguments as `fire`.
-
 ### `on_step(dtime)`
 
 - This is the globalstep callback that's responsible for firing automatic guns.
@@ -85,15 +81,17 @@ This file aims to document all the internal and external methods of the `gunslin
 
 - `itemdef` [table]: Item definition table passed to `minetest.register_item`.
   - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
+- `ammo` [itemstring]: What type of ammo to use when reloading.
 - `clip_size` [number]: Number of bullets per-clip.
 - `fire_rate` [number]: Number of shots per-second.
 - `range` [number]: Range of fire in number of nodes.
+- `spread` [number]: How much bullets will spread away from the cursor.(0 is nothing, 1000 is anywhere in front of the player (I think))
 - `base_dmg` [number]: Base amount of damage dealt in HP.
+- `pellets` [number]: Number of bullets per shot, used for shotguns.
 - `mode` [string]: Firing mode.
   - `"manual"`: One shot per-click, but requires manual loading for every round; aka Bolt-action.
   - `"semi-automatic"`: One shot per-click.
   - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3.
-  - `"splash"`: **(WARNING: Unimplemented)** Shotgun-style pellets; one burst per-click.
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down.
   - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
 
