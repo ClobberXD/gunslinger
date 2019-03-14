@@ -55,15 +55,12 @@ end
 
 --------------------------------
 
-local function reload(stack, player, ammo)
+local function reload(stack, player)
 	-- Check for ammo
-	if not ammo then
-		return stack
-	end
 	local inv = player:get_inventory()
-	if inv:contains_item("main", ammo) then
+	if inv:contains_item("main", "gunslinger:ammo") then
 		-- Ammo exists, reload and reset wear
-		inv:remove_item("main", ammo)
+		inv:remove_item("main", "gunslinger:ammo")
 		stack:set_wear(0)
 	else
 		-- No ammo, play click sound
@@ -73,7 +70,7 @@ local function reload(stack, player, ammo)
 	return stack
 end
 
-local function fire(stack, player, base_spread, pellets)
+local function fire(stack, player)
 	-- Workaround to prevent function from running if stack is nil
 	if not stack then
 		return
@@ -86,59 +83,51 @@ local function fire(stack, player, base_spread, pellets)
 
 	local wear = stack:get_wear()
 	if wear == max_wear then
-		return reload(stack, player, def.ammo)
+		return reload(stack, player)
 	end
 
 	-- Play gunshot sound
 	play_sound(def.fire_sound)
 
 	-- Take aim
-	local eye_offset = {x = 0, y = 1.45, z = 0} --player:get_eye_offset().offset_first
+	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
 	local dir = player:get_look_dir()
 	local p1 = vector.add(player:get_pos(), eye_offset)
 	p1 = vector.add(p1, dir)
-	if not pellets then pellets = 1 end
-	for i = 1, pellets do
-		if base_spread then
-			dir.x = dir.x + (math.random(-1*base_spread, base_spread))*.001
-			dir.y = dir.y + (math.random(-1*base_spread, base_spread))*.001
-			dir.z = dir.z + (math.random(-1*base_spread, base_spread))*.001
+	local p2 = vector.add(p1, vector.multiply(dir, def.range))
+	local ray = minetest.raycast(p1, p2)
+	local pointed = ray:next()
+
+	-- Projectile particle
+	minetest.add_particle({
+		pos = p1,
+		velocity = vector.multiply(dir, 400),
+		acceleration = {x = 0, y = 0, z = 0},
+		expirationtime = 2,
+		size = 1,
+		collisiondetection = true,
+		collision_removal = true,
+		object_collision = true,
+		glow = 5
+	})
+
+	-- Fire!
+	if pointed and pointed.type == "object" then
+		local target = pointed.ref
+		local point = pointed.intersection_point
+		local dmg = base_dmg * def.dmg_mult
+
+		-- Add 50% damage if headshot
+		if point.y > target:get_pos().y + 1.5 then
+			dmg = dmg * 1.5
 		end
-		local p2 = vector.add(p1, vector.multiply(dir, def.range))
-		local ray = minetest.raycast(p1, p2)
-		local pointed = ray:next()
 
-		-- Projectile particle
-		minetest.add_particle({
-			pos = p1,
-			velocity = vector.multiply(dir, 400),
-			acceleration = {x = 0, y = 0, z = 0},
-			expirationtime = 2,
-			size = 1,
-			collisiondetection = true,
-			collision_removal = true,
-			object_collision = true,
-			glow = 5
-		})
-
-		-- Fire!
-		if pointed and pointed.type == "object" then
-			local target = pointed.ref
-			local point = pointed.intersection_point
-			local dmg = def.base_dmg * def.dmg_mult
-
-			-- Add 50% damage if headshot
-			if point.y > target:get_pos().y + 1.5 then
-				dmg = dmg * 1.5
-			end
-
-			-- Add 20% more damage if player using scope
-			if scope_overlay[player:get_player_name()] then
-				dmg = dmg * 1.2
-			end
-
-			target:set_hp(target:get_hp() - dmg)
+		-- Add 20% more damage if player using scope
+		if scope_overlay[player:get_player_name()] then
+			dmg = dmg * 1.2
 		end
+
+		target:set_hp(target:get_hp() - dmg)
 	end
 
 	-- Update wear
@@ -152,24 +141,23 @@ local function fire(stack, player, base_spread, pellets)
 	return stack
 end
 
-local function burst_fire(stack, player, base_spread, pellets)
+local function burst_fire(stack, player)
 	local def = gunslinger.get_def(stack:get_name())
 	local burst = def.burst or 3
 	for i = 1, burst do
 		minetest.after(i / def.fire_rate, function(st)
-			fire(st, player, base_spread, pellets)
+			fire(st, player)
 		end, stack)
 	end
 	-- Manually add wear to stack, as functions can't return
 	-- values from within minetest.after
-	local wear = stack:get_wear()
-	wear = wear + def.unit_wear*3
-	if wear > max_wear then
-		wear = max_wear
-	end
-	stack:set_wear(wear)
+	stack:add_wear(def.unit_wear * burst)
 
 	return stack
+end
+
+local function splash_fire(stack, player)
+	-- TODO
 end
 
 --------------------------------
@@ -195,23 +183,26 @@ local function on_lclick(stack, player)
 	elseif def.mode == "hybrid"
 			and not automatic[name] then
 		if scope_overlay[name] then
-			stack = burst_fire(stack, player, def.base_spread, def.pellets)
+			stack = burst_fire(stack, player)
 		else
 			add_auto(name, def)
 		end
 	elseif def.mode == "burst" then
-		stack = burst_fire(stack, player, def.base_spread, def.pellets)
+		stack = burst_fire(stack, player)
+	elseif def.mode == "splash" then
+		stack = splash_fire(stack, player)
 	elseif def.mode == "semi-automatic" then
-		stack = fire(stack, player, def.base_spread, def.pellets)
+		stack = fire(stack, player)
 	elseif def.mode == "manual" then
 		local meta = stack:get_meta()
 		if meta:contains("loaded") then
-			stack = fire(stack, player, def.base_spread, def.pellets)
+			stack = fire(stack, player)
 			meta:set_string("loaded", "")
 		else
-			stack = reload(stack, player, def.ammo)
+			stack = reload(stack, player)
 			meta:set_string("loaded", "true")
 		end
+		stack:set_meta(meta)
 	end
 
 	return stack
@@ -233,21 +224,21 @@ end
 --------------------------------
 
 local function on_step(dtime)
-	for name in pairs(interval) do
-		interval[name] = interval[name] + dtime
-	end
 	for name, info in pairs(automatic) do
 		local player = minetest.get_player_by_name(name)
 		if not player then
 			automatic[name] = nil
 			return
 		end
+
+		interval[name] = interval[name] + dtime
 		if interval[name] < info.def.unit_time then
 			return
 		end
+
 		if player:get_player_control().LMB then
 			-- If LMB pressed, fire
-			info.stack = fire(info.stack, player, info.def.base_spread, info.def.pellets)
+			info.stack = fire(info.stack, player)
 			player:set_wielded_item(info.stack)
 			automatic[name].stack = info.stack
 			interval[name] = 0
@@ -293,8 +284,9 @@ function gunslinger.register_gun(name, def)
 			def[name] = val
 		end
 	end
+
 	-- Abort when making use of unimplemented features
-	if def.zoom then
+	if def.mode == "splash" or def.zoom then
 		error("register_gun: Unimplemented feature!")
 	end
 
@@ -316,14 +308,9 @@ function gunslinger.register_gun(name, def)
 			return entity:on_rightclick(player) or on_rclick(stack, player)
 		end
 	end
-	if not def.pellets then
-		def.pellets = 1
-	end
-	if not def.dmg_mult then
-		def.dmg_mult = 1
-	end
+
 	if not def.fire_sound then
-		def.fire_sound = (def.pellets == 1)
+		def.fire_sound = (def.mode ~= "splash")
 			and "gunslinger_fire1" or "gunslinger_fire2"
 	end
 
