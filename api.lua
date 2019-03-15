@@ -151,7 +151,12 @@ local function burst_fire(stack, player)
 	end
 	-- Manually add wear to stack, as functions can't return
 	-- values from within minetest.after
-	stack:add_wear(def.unit_wear * burst)
+	local wear = stack:get_wear()
+	wear = wear + def.unit_wear*3
+	if wear > max_wear then
+		wear = max_wear
+	end
+	stack:set_wear(wear)
 
 	return stack
 end
