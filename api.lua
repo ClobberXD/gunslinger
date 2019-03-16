@@ -87,7 +87,7 @@ local function fire(stack, player)
 	end
 
 	-- Play gunshot sound
-	play_sound(def.fire_sound)
+	play_sound(def.fire_sound, player)
 
 	-- Take aim
 	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
