@@ -115,7 +115,7 @@ local function fire(stack, player)
 	if pointed and pointed.type == "object" then
 		local target = pointed.ref
 		local point = pointed.intersection_point
-		local dmg = base_dmg * def.dmg_mult
+		local dmg = def.base_dmg * def.dmg_mult
 
 		-- Add 50% damage if headshot
 		if point.y > target:get_pos().y + 1.5 then
@@ -294,6 +294,10 @@ function gunslinger.register_gun(name, def)
 			and lite then
 		error("gunslinger.register_gun: Attempt to register gun of " ..
 				"type '" .. def.mode .. "' when lite mode is enabled")
+	end
+	
+	if not def.dmg_mult then
+		def.dmg_mult = 1
 	end
 
 	def.itemdef.on_use = on_lclick
