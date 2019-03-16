@@ -90,7 +90,7 @@ local function fire(stack, player)
 	play_sound(def.fire_sound)
 
 	-- Take aim
-	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
+	local eye_offset = {x = 0, y = 1.45, z = 0} --player:get_eye_offset().offset_first
 	local dir = player:get_look_dir()
 	local p1 = vector.add(player:get_pos(), eye_offset)
 	p1 = vector.add(p1, dir)
