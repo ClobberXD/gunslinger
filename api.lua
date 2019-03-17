@@ -13,6 +13,9 @@ local interval = {}
 -- Internal API functions
 --
 
+-- Locally cache gunslinger.get_def for better performance
+local get_def = gunslinger.get_def
+
 local function play_sound(sound, player)
 	minetest.sound_play(sound, {
 		object = player,
@@ -76,7 +79,7 @@ local function fire(stack, player)
 		return
 	end
 
-	local def = gunslinger.get_def(stack:get_name())
+	local def = get_def(stack:get_name())
 	if not def then
 		return stack
 	end
@@ -141,7 +144,7 @@ local function fire(stack, player)
 end
 
 local function burst_fire(stack, player)
-	local def = gunslinger.get_def(stack:get_name())
+	local def = get_def(stack:get_name())
 	local burst = def.burst or 3
 	for i = 1, burst do
 		minetest.after(i / def.fire_rate, function(st)
@@ -166,7 +169,7 @@ local function on_lclick(stack, player)
 		return
 	end
 
-	local def = gunslinger.get_def(stack:get_name())
+	local def = get_def(stack:get_name())
 	if not def then
 		return
 	end
@@ -207,7 +210,7 @@ local function on_lclick(stack, player)
 end
 
 local function on_rclick(stack, player)
-	local def = gunslinger.get_def(stack:get_name())
+	local def = get_def(stack:get_name())
 	if scope_overlay[player:get_player_name()] then
 		hide_scope(player)
 	else
