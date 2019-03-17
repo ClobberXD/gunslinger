@@ -225,34 +225,34 @@ end
 --------------------------------
 
 local function on_step(dtime)
-	for name, info in pairs(automatic) do
-		local player = minetest.get_player_by_name(name)
-		if not player then
-			automatic[name] = nil
-			return
-		end
-
+	for name in pairs(interval) do
 		interval[name] = interval[name] + dtime
-		if interval[name] < info.def.unit_time then
-			return
-		end
-
-		if player:get_player_control().LMB then
-			-- If LMB pressed, fire
-			info.stack = fire(info.stack, player)
-			player:set_wielded_item(info.stack)
-			automatic[name].stack = info.stack
-			interval[name] = 0
-		else
-			-- If LMB not pressed, remove player from list
-			automatic[name] = nil
+	end
+	if not lite then
+		for name, info in pairs(automatic) do
+			local player = minetest.get_player_by_name(name)
+			if not player then
+				automatic[name] = nil
+				return
+			end
+			if interval[name] < info.def.unit_time then
+				return
+			end
+			if player:get_player_control().LMB then
+				-- If LMB pressed, fire
+				info.stack = fire(info.stack, player)
+				player:set_wielded_item(info.stack)
+				automatic[name].stack = info.stack
+				interval[name] = 0
+			else
+				-- If LMB not pressed, remove player from list
+				automatic[name] = nil
+			end
 		end
 	end
 end
 
-if not lite then
-	minetest.register_globalstep(on_step)
-end
+minetest.register_globalstep(on_step)
 
 --
 -- External API functions
