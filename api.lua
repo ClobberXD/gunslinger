@@ -127,7 +127,7 @@ local function fire(stack, player)
 			dmg = dmg * 1.2
 		end
 
-		target:punch(player, nil, {damage_groups={fleshy=dmg}})
+		target:punch(player, nil, {damage_groups = {fleshy = dmg}})
 	end
 
 	-- Update wear
