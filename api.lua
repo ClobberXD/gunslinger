@@ -239,7 +239,7 @@ local function on_step(dtime)
 			end
 			if player:get_player_control().LMB then
 				-- If LMB pressed, fire
-				info.stack = fire(info.stack, player, info.def.base_spread, info.def.max_spread, info.def.pellets)
+				info.stack = fire(info.stack, player)
 				player:set_wielded_item(info.stack)
 				automatic[name].stack = info.stack
 				interval[name] = 0
