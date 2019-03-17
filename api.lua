@@ -131,7 +131,6 @@ local function fire(stack, player)
 	end
 
 	-- Update wear
-	local wear = stack:get_wear()
 	wear = wear + def.unit_wear
 	if wear > max_wear then
 		wear = max_wear
