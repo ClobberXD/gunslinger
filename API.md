@@ -90,11 +90,11 @@ This file aims to document all the internal and external methods of the `gunslin
 - `range` [number]: Range of fire in number of nodes.
 - `base_dmg` [number]: Base amount of damage dealt in HP.
 - `mode` [string]: Firing mode.
-  - `"manual"`: One shot per-click, but requires manual loading for every round; aka Bolt-action.
-  - `"semi-automatic"`: One shot per-click.
-  - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3.
-  - `"splash"`: **(WARNING: Unimplemented)** Shotgun-style pellets; one burst per-click.
-  - `"automatic"`: Fully automatic; shoots as long as primary button is held down.
+  - `"manual"`: One shot per-click, but requires manual loading for every round; aka bolt-action rifles.
+  - `"semi-automatic"`: One shot per-click. e.g. a typical 9mm pistol.
+  - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3. e.g. M16A4
+  - `"splash"`: **(WARNING: Unimplemented)** Shotgun-style pellets; one round per-click. e.g. Remington Model 870, Winchester 94
+  - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
   - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
 
 - `scope` [string]: Name of scope overlay texture.
