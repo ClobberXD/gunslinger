@@ -202,7 +202,6 @@ local function on_lclick(stack, player)
 			stack = reload(stack, player)
 			meta:set_string("loaded", "true")
 		end
-		stack:set_meta(meta)
 	end
 
 	return stack
