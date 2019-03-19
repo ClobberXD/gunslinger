@@ -3,6 +3,9 @@ gunslinger = {}
 local max_wear = 65534
 local lite = minetest.settings:get_bool("gunslinger.lite")
 
+-- Base damage value of 1 HP. Guns can modify this by defining dmg_mult
+local base_dmg = 1
+
 local guns = {}
 local types = {}
 local automatic = {}
@@ -295,6 +298,10 @@ function gunslinger.register_gun(name, def)
 			and lite then
 		error("gunslinger.register_gun: Attempt to register gun of " ..
 				"type '" .. def.mode .. "' when lite mode is enabled")
+	end
+
+	if not def.dmg_mult then
+		def.dmg_mult = 1
 	end
 
 	def.itemdef.on_use = on_lclick
