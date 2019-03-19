@@ -284,8 +284,8 @@ function gunslinger.register_gun(name, def)
 	if def.type then
 		assert(types[def.type], "gunslinger.register_gun: Invalid type!")
 
-		for name, val in pairs(types[def.type]) do
-			def[name] = val
+		for attr, val in pairs(types[def.type]) do
+			def[attr] = val
 		end
 	end
 
