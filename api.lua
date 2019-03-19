@@ -291,13 +291,13 @@ function gunslinger.register_gun(name, def)
 
 	-- Abort when making use of unimplemented features
 	if def.mode == "splash" or def.zoom then
-		error("register_gun: Unimplemented feature!")
+		error("register_gun: Unimplemented feature!", 2)
 	end
 
 	if (def.mode == "automatic" or def.mode == "hybrid")
 			and lite then
-		error("gunslinger.register_gun: Attempt to register gun of " ..
-				"type '" .. def.mode .. "' when lite mode is enabled")
+		error("gunslinger.register_gun: Attempting to register gun of " ..
+				"type '" .. def.mode .. "' when lite mode is enabled", 2)
 	end
 
 	if not def.dmg_mult then
