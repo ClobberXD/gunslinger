@@ -276,9 +276,9 @@ end
 
 function gunslinger.register_gun(name, def)
 	assert(type(name) == "string" and type(def) == "table",
-			   "gunslinger.register_type: Invalid params!")
-	assert(not guns[name], "gunslinger.register_gun:"
-			.. " Attempt to register a gun with an existing name!")
+	       "gunslinger.register_gun: Invalid params!")
+	assert(not guns[name], "gunslinger.register_gun: " ..
+	       "Attempt to register a gun with an existing name!")
 
 	-- Import type defaults if def.type specified
 	if def.type then
@@ -323,7 +323,7 @@ function gunslinger.register_gun(name, def)
 	end
 
 	if def.zoom and not def.scope then
-		error("gunslinger.register_gun: zoom requires scope to be defined!")
+		error("gunslinger.register_gun: zoom requires scope to be defined!", 2)
 	end
 
 	def.unit_wear = math.ceil(max_wear / def.clip_size)
