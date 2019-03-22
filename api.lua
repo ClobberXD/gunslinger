@@ -1,4 +1,10 @@
-gunslinger = {}
+gunslinger = {
+	__guns = {},
+	__types = {},
+	__automatic = {},
+	__scopes = {},
+	__interval = {}
+}
 
 local max_wear = 65534
 local lite = minetest.settings:get_bool("gunslinger.lite")
@@ -6,18 +12,9 @@ local lite = minetest.settings:get_bool("gunslinger.lite")
 -- Base damage value of 1 HP. Guns can modify this by defining dmg_mult
 local base_dmg = 1
 
-local guns = {}
-local types = {}
-local automatic = {}
-local scope_overlay = {}
-local interval = {}
-
 --
 -- Internal API functions
 --
-
--- Locally cache gunslinger.get_def for better performance
-local get_def = gunslinger.get_def
 
 local function play_sound(sound, player)
 	minetest.sound_play(sound, {
@@ -27,7 +24,7 @@ local function play_sound(sound, player)
 end
 
 local function add_auto(name, def, stack)
-	automatic[name] = {
+	gunslinger.__automatic[name] = {
 		def   = def,
 		stack = stack
 	}
@@ -41,7 +38,7 @@ local function show_scope(player, scope, zoom)
 	end
 
 	-- Create HUD overlay element
-	scope_overlay[player:get_player_name()] = player:hud_add({
+	gunslinger.__scopes[player:get_player_name()] = player:hud_add({
 		hud_elem_type = "image",
 		position = {x = 0.5, y = 0.5},
 		alignment = {x = 0, y = 0},
@@ -55,8 +52,8 @@ local function hide_scope(player)
 	end
 
 	local name = player:get_player_name()
-	player:hud_remove(scope_overlay[name])
-	scope_overlay[name] = nil
+	player:hud_remove(gunslinger.__scopes[name])
+	gunslinger.__scopes[name] = nil
 end
 
 --------------------------------
@@ -82,7 +79,7 @@ local function fire(stack, player)
 		return
 	end
 
-	local def = get_def(stack:get_name())
+	local def = gunslinger.__guns[stack:get_name()]
 	if not def then
 		return stack
 	end
@@ -129,7 +126,7 @@ local function fire(stack, player)
 		end
 
 		-- Add 20% more damage if player using scope
-		if scope_overlay[player:get_player_name()] then
+		if gunslinger.__scopes[player:get_player_name()] then
 			dmg = dmg * 1.2
 		end
 
@@ -147,7 +144,7 @@ local function fire(stack, player)
 end
 
 local function burst_fire(stack, player)
-	local def = get_def(stack:get_name())
+	local def = gunslinger.__guns[stack:get_name()]
 	local burst = def.burst or 3
 	for i = 1, burst do
 		minetest.after(i / def.fire_rate, function(st)
@@ -172,22 +169,22 @@ local function on_lclick(stack, player)
 		return
 	end
 
-	local def = get_def(stack:get_name())
+	local def = gunslinger.__guns[stack:get_name()]
 	if not def then
 		return
 	end
 
 	local name = player:get_player_name()
-	if interval[name] and interval[name] < def.unit_time then
+	if gunslinger.__interval[name] and gunslinger.__interval[name] < def.unit_time then
 		return
 	end
-	interval[name] = 0
+	gunslinger.__interval[name] = 0
 
-	if def.mode == "automatic" and not automatic[name] then
+	if def.mode == "automatic" and not gunslinger.__automatic[name] then
 		add_auto(name, def, stack)
 	elseif def.mode == "hybrid"
-			and not automatic[name] then
-		if scope_overlay[name] then
+			and not gunslinger.__automatic[name] then
+		if gunslinger.__scopes[name] then
 			stack = burst_fire(stack, player)
 		else
 			add_auto(name, def)
@@ -213,43 +210,41 @@ local function on_lclick(stack, player)
 end
 
 local function on_rclick(stack, player)
-	local def = get_def(stack:get_name())
-	if scope_overlay[player:get_player_name()] then
+	local def = gunslinger.__guns[stack:get_name()]
+	if gunslinger.__scopes[player:get_player_name()] then
 		hide_scope(player)
 	else
 		if def.scope then
-			show_scope(player, def.scope, def.scope_overlay)
+			show_scope(player, def.scope, def.gunslinger.__scopes)
 		end
 	end
-
-	return stack
 end
 
 --------------------------------
 
 local function on_step(dtime)
-	for name in pairs(interval) do
-		interval[name] = interval[name] + dtime
+	for name in pairs(gunslinger.__interval) do
+		gunslinger.__interval[name] = gunslinger.__interval[name] + dtime
 	end
 	if not lite then
-		for name, info in pairs(automatic) do
+		for name, info in pairs(gunslinger.__automatic) do
 			local player = minetest.get_player_by_name(name)
 			if not player then
-				automatic[name] = nil
+				gunslinger.__automatic[name] = nil
 				return
 			end
-			if interval[name] < info.def.unit_time then
+			if gunslinger.__interval[name] < info.def.unit_time then
 				return
 			end
 			if player:get_player_control().LMB then
 				-- If LMB pressed, fire
 				info.stack = fire(info.stack, player)
 				player:set_wielded_item(info.stack)
-				automatic[name].stack = info.stack
-				interval[name] = 0
+				gunslinger.__automatic[name].stack = info.stack
+				gunslinger.__interval[name] = 0
 			else
 				-- If LMB not pressed, remove player from list
-				automatic[name] = nil
+				gunslinger.__automatic[name] = nil
 			end
 		end
 	end
@@ -262,29 +257,29 @@ minetest.register_globalstep(on_step)
 --
 
 function gunslinger.get_def(name)
-	return guns[name]
+	return gunslinger.__guns[name]
 end
 
 function gunslinger.register_type(name, def)
 	assert(type(name) == "string" and type(def) == "table",
-			   "gunslinger.register_type: Invalid params!")
-	assert(not types[name], "gunslinger.register_type:"
-			.. " Attempt to register a type with an existing name!")
+	      "gunslinger.register_type: Invalid params!")
+	assert(not gunslinger.__types[name], "gunslinger.register_type:" ..
+	      " Attempt to register a type with an existing name!")
 
-	types[name] = def
+	gunslinger.__types[name] = def
 end
 
 function gunslinger.register_gun(name, def)
 	assert(type(name) == "string" and type(def) == "table",
-	       "gunslinger.register_gun: Invalid params!")
-	assert(not guns[name], "gunslinger.register_gun: " ..
-	       "Attempt to register a gun with an existing name!")
+	      "gunslinger.register_gun: Invalid params!")
+	assert(not gunslinger.__guns[name], "gunslinger.register_gun: " ..
+	      "Attempt to register a gun with an existing name!")
 
 	-- Import type defaults if def.type specified
 	if def.type then
-		assert(types[def.type], "gunslinger.register_gun: Invalid type!")
+		assert(gunslinger.__types[def.type], "gunslinger.register_gun: Invalid type!")
 
-		for attr, val in pairs(types[def.type]) do
+		for attr, val in pairs(gunslinger.__types[def.type]) do
 			def[attr] = val
 		end
 	end
@@ -329,6 +324,6 @@ function gunslinger.register_gun(name, def)
 	def.unit_wear = math.ceil(max_wear / def.clip_size)
 	def.unit_time = 1 / def.fire_rate
 
-	guns[name] = def
+	gunslinger.__guns[name] = def
 	minetest.register_tool(name, def.itemdef)
 end
