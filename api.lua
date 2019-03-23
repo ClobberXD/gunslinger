@@ -7,6 +7,7 @@ gunslinger = {
 }
 
 local max_wear = 65534
+local projectile_speed = 500
 local lite = minetest.settings:get_bool("gunslinger.lite")
 
 -- Base damage value of 1 HP. Guns can modify this by defining dmg_mult
@@ -15,6 +16,21 @@ local base_dmg = 1
 --
 -- Internal API functions
 --
+
+local function get_pointed_thing(player, def)
+	if not player or not def then
+		error("gunslinger: Invalid get_pointed_thing invocation" ..
+		        " (missing ObjectRef param)", 2)
+	end
+
+	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
+	local dir = player:get_look_dir()
+	local p1 = vector.add(player:get_pos(), eye_offset)
+	p1 = vector.add(p1, dir)
+	local p2 = vector.add(p1, vector.multiply(dir, def.range))
+	local ray = minetest.raycast(p1, p2)
+	return ray:next()
+end
 
 local function play_sound(sound, player)
 	minetest.sound_play(sound, {
@@ -74,7 +90,6 @@ local function reload(stack, player)
 end
 
 local function fire(stack, player)
-	-- Workaround to prevent function from running if stack is nil
 	if not stack then
 		return
 	end
@@ -92,19 +107,50 @@ local function fire(stack, player)
 	-- Play gunshot sound
 	play_sound(def.fire_sound, player)
 
-	-- Take aim
-	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
-	local dir = player:get_look_dir()
-	local p1 = vector.add(player:get_pos(), eye_offset)
-	p1 = vector.add(p1, dir)
-	local p2 = vector.add(p1, vector.multiply(dir, def.range))
-	local ray = minetest.raycast(p1, p2)
-	local pointed = ray:next()
+	--[[
+		Perform "deferred raycasting" to mimic projectile entities, without
+		actually using entities:
+			- Perform initial raycast to get position of target if it exists
+			- Calculate time taken for projectile to travel from gun to target
+			- Perform actual raycast after the calculated time
+
+		This process throws in a couple more calculations and an extra raycast,
+		but the vastly improved realism at the cost of a negligible performance
+		hit is always great to have.
+	]]
+	local time = 0.1 -- Default to 0.1s
+	local pos1 = player:get_pos()
+	local initial_pthing = get_pointed_thing(player, def)
+	if initial_pthing then
+		local pos2 = minetest.get_pointed_thing_position(initial_pthing)
+		time = vector.distance(player:get_pos(), pos2) / projectile_speed
+	end
+
+	minetest.after(time, function(obj, gun_def)
+		local pointed = get_pointed_thing(obj, gun_def)
+		if pointed and pointed.type == "object" then
+			local target = pointed.ref
+			local point = pointed.intersection_point
+			local dmg = base_dmg * gun_def.dmg_mult
+
+			-- Add 50% damage if headshot
+			if point.y > target:get_pos().y + 1.5 then
+				dmg = dmg * 1.5
+			end
+
+			-- Add 20% more damage if player using scope
+			if gunslinger.__scopes[obj:get_player_name()] then
+				dmg = dmg * 1.2
+			end
+
+			target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
+		end
+	end, player, def)
 
 	-- Projectile particle
 	minetest.add_particle({
-		pos = p1,
-		velocity = vector.multiply(dir, 400),
+		pos = pos1,
+		velocity = vector.multiply(player:get_look_dir(), projectile_speed),
 		acceleration = {x = 0, y = 0, z = 0},
 		expirationtime = 2,
 		size = 1,
@@ -113,25 +159,6 @@ local function fire(stack, player)
 		object_collision = true,
 		glow = 5
 	})
-
-	-- Fire!
-	if pointed and pointed.type == "object" then
-		local target = pointed.ref
-		local point = pointed.intersection_point
-		local dmg = base_dmg * def.dmg_mult
-
-		-- Add 50% damage if headshot
-		if point.y > target:get_pos().y + 1.5 then
-			dmg = dmg * 1.5
-		end
-
-		-- Add 20% more damage if player using scope
-		if gunslinger.__scopes[player:get_player_name()] then
-			dmg = dmg * 1.2
-		end
-
-		target:punch(player, nil, {damage_groups = {fleshy = dmg}})
-	end
 
 	-- Update wear
 	wear = wear + def.unit_wear
