@@ -77,13 +77,15 @@ end
 local function reload(stack, player)
 	-- Check for ammo
 	local inv = player:get_inventory()
+	local def = gunslinger.__guns[stack:get_name()]
 	if inv:contains_item("main", "gunslinger:ammo") then
 		-- Ammo exists, reload and reset wear
 		inv:remove_item("main", "gunslinger:ammo")
+		play_sound(def.sounds.reload, player)
 		stack:set_wear(0)
 	else
-		-- No ammo, play click sound
-		play_sound("gunslinger_ooa", player)
+		-- No ammo, play out of ammo sound
+		play_sound(def.sounds.ooa, player)
 	end
 
 	return stack
@@ -105,7 +107,7 @@ local function fire(stack, player)
 	end
 
 	-- Play gunshot sound
-	play_sound(def.fire_sound, player)
+	play_sound(def.sounds.fire, player)
 
 	--[[
 		Perform "deferred raycasting" to mimic projectile entities, without
@@ -326,6 +328,36 @@ function gunslinger.register_gun(name, def)
 		def.dmg_mult = 1
 	end
 
+	-- Initialize sounds
+	do
+		if not def.sounds then
+			def.sounds = {}
+		end
+
+		if not def.sounds.fire then
+			def.sounds.fire = "gunslinger_fire"
+		end
+
+		if not def.sounds.reload then
+			def.sounds.reload = "gunslinger_reload"
+		end
+
+		if not def.sounds.ooa then
+			def.sounds.ooa = "gunslinger_ooa"
+		end
+	end
+
+	if def.zoom and not def.scope then
+		error("gunslinger.register_gun: zoom requires scope to be defined!", 2)
+	end
+
+	-- Add additional helper fields for internal use
+	def.unit_wear = math.ceil(max_wear / def.clip_size)
+	def.unit_time = 1 / def.fire_rate
+
+	-- Register gun
+	gunslinger.__guns[name] = def
+
 	def.itemdef.on_use = on_lclick
 	def.itemdef.on_secondary_use = on_rclick
 	def.itemdef.on_place = function(stack, player, pointed)
@@ -339,18 +371,6 @@ function gunslinger.register_gun(name, def)
 		end
 	end
 
-	if not def.fire_sound then
-		def.fire_sound = (def.mode ~= "splash")
-			and "gunslinger_fire1" or "gunslinger_fire2"
-	end
-
-	if def.zoom and not def.scope then
-		error("gunslinger.register_gun: zoom requires scope to be defined!", 2)
-	end
-
-	def.unit_wear = math.ceil(max_wear / def.clip_size)
-	def.unit_time = 1 / def.fire_rate
-
-	gunslinger.__guns[name] = def
+	-- Register tool
 	minetest.register_tool(name, def.itemdef)
 end
