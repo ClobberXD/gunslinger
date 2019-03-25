@@ -32,6 +32,11 @@ The `gunslinger` namespace has the following members:
 
 ## Internal methods
 
+### `eye(player)`
+
+- Returns player eye-height in `v3f` format. i.e. `{x = 0, y = player:get_properties().eye_height, z = 0}`
+- `player` [ObjectRef]: Player whose eye-height is returned.
+
 ### `get_pointed_thing(player, def)`
 
 - Helper function that performs a raycast from player in the direction of player's look dir, and upto the range defined by `def.range`.
