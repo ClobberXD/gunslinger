@@ -17,15 +17,22 @@ local base_dmg = 1
 -- Internal API functions
 --
 
+local function eye(player)
+	if not player then
+		return
+	end
+
+	return {x = 0, y = player:get_properties().eye_height, z = 0}
+end
+
 local function get_pointed_thing(player, def)
 	if not player or not def then
 		error("gunslinger: Invalid get_pointed_thing invocation" ..
-		        " (missing ObjectRef param)", 2)
+		        " (missing params)", 2)
 	end
 
-	local eye_offset = {x = 0, y = 1.625, z = 0} --player:get_eye_offset().offset_first
 	local dir = player:get_look_dir()
-	local p1 = vector.add(player:get_pos(), eye_offset)
+	local p1 = vector.add(player:get_pos(), eye(player))
 	p1 = vector.add(p1, dir)
 	local p2 = vector.add(p1, vector.multiply(dir, def.range))
 	local ray = minetest.raycast(p1, p2)
@@ -121,8 +128,7 @@ local function fire(stack, player)
 		hit is always great to have.
 	]]
 	local time = 0.1 -- Default to 0.1s
-	local pos1 = player:get_pos()
-	pos1.y = pos1.y + player:get_properties().eye_height
+	local pos1 = vector.add(player:get_pos(), eye(player))
 	local initial_pthing = get_pointed_thing(player, def)
 	if initial_pthing then
 		local pos2 = minetest.get_pointed_thing_position(initial_pthing)
