@@ -85,9 +85,9 @@ local function reload(stack, player)
 	-- Check for ammo
 	local inv = player:get_inventory()
 	local def = gunslinger.__guns[stack:get_name()]
-	if inv:contains_item("main", "gunslinger:ammo") then
+	if inv:contains_item("main", def.ammo) then
 		-- Ammo exists, reload and reset wear
-		inv:remove_item("main", "gunslinger:ammo")
+		inv:remove_item("main", def.ammo)
 		play_sound(def.sounds.reload, player)
 		stack:set_wear(0)
 	else
@@ -358,6 +358,10 @@ function gunslinger.register_gun(name, def)
 		if not def.sounds.ooa then
 			def.sounds.ooa = "gunslinger_ooa"
 		end
+	end
+
+	if not def.ammo then
+		def.ammo = "gunslinger:ammo"
 	end
 
 	if def.zoom and not def.scope then

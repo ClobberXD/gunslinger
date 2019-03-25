@@ -114,6 +114,7 @@ The `gunslinger` namespace has the following members:
 
 - `itemdef` [table]: Item definition table passed to `minetest.register_item`.
   - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
+- `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo` if undefined.
 - `clip_size` [number]: Number of rounds per-clip.
 - `fire_rate` [number]: Number of rounds per-second.
 - `range` [number]: Range of fire in number of nodes.
