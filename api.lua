@@ -227,12 +227,17 @@ local function on_lclick(stack, player)
 		stack = fire(stack, player)
 	elseif def.mode == "manual" then
 		local meta = stack:get_meta()
-		if meta:contains("loaded") then
-			stack = fire(stack, player)
-			meta:set_string("loaded", "")
-		else
-			stack = reload(stack, player)
+		local loaded = meta:get("loaded")
+		if not loaded then
+			if def.sounds.load then
+				play_sound(def.sounds.load, player)
+			end
+
 			meta:set_string("loaded", "true")
+			stack = reload(stack, player)
+		else
+			meta:set_string("loaded", "")
+			stack = fire(stack, player)
 		end
 	end
 
