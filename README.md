@@ -33,16 +33,16 @@ Enabling lite mode will disable the realistic/fancy features which are potential
 
 ### Automatic guns
 
-`gunslinger` supports automatic guns out of the box, while not causing excessive lag. This is achieved by adding players who left-click while wielding automatic guns to a special list, and the entry remains in the list only as long as their left mouse button is held down. A globalstep iterates through the table and fires one shot for all players in the list (while also respecting the fire-rate of the wielded guns).
+`gunslinger` supports automatic guns out of the box, while not causing excessive lag. This is achieved by adding players who left-click while wielding automatic guns to a special list - the entry remains in the list only as long as their left mouse button is held down. A globalstep iterates through the table and fires one shot for all players in the list (while also respecting the fire-rate of the wielded guns).
 
 The use of a dedicated list improves performance greatly, as the globalstep would have to otherwise iterate through **all** connected players, check if their mouse button is down, and only then, fire a shot. Nevertheless, disabling automatic guns (by enabling [lite mode](###Lite-mode)) is recommended on large public servers as it would still cause quite a bit of lag, in spite of this optimisation.
 
-`gunslinger` provides a setting `"gunslinger.enable_automatic"`. Disabling this setting will throw an error when an automatic gun is registered.
+### Deferred Raycasting
 
-## TODO
+Deferred Raycasting is a technique which adds the realism of entity-based projectiles, but without entities. This technique throws in a couple more calculations and an extra raycast, but the vastly improved realism at the cost of a negligible performance hit is always great to have. Here's how it works:
 
-- Gun perks (special effects when bullet finds its target)
-- Visible projectiles and/or entity-based collision/damage system.
-- Customisable recoil per-gun.
+- Perform initial raycast to get position of target if it exists.
+- Calculate time taken for projectile to travel from gun to target.
+- Perform actual raycast after the calculated time.
 
-### See API.md for the complete gunslinger API reference
+### See [API.md](API.md) for the complete gunslinger API reference

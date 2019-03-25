@@ -1,8 +1,20 @@
 # `gunslinger` API documentation
 
-This file aims to document all the internal and external methods of the `gunslinger` API.
+This file aims to thoroughly document the `gunslinger` API.
 
-## External API methods
+## `gunslinger` namespace
+
+(**Note**: _It's not recommended to directly access the private members in the `gunslinger` namespace_)
+
+The `gunslinger` namespace has the following members:
+
+### "Private" members
+
+- `__guns` [table]: Table of registered guns.
+- `__types` [table]: Table of registered types.
+- `__automatic` [table]: Table of players weilding automatic guns.
+- `__scopes` [table]: Table of HUD IDs of scope overlays.
+- `__interval` [table]: Table storing time from last fire; used to regulate fire-rate.
 
 ### `gunslinger.register_type(name, def)`
 
@@ -18,13 +30,19 @@ This file aims to document all the internal and external methods of the `gunslin
 
 - Retrieves the [Gun definition table](###Gun-definition-table).
 
-## Internal API methods
+## Internal methods
+
+### `get_pointed_thing(player, def)`
+
+- Helper function that performs a raycast from player in the direction of player's look dir, and upto the range defined by `def.range`.
+- `player` [ObjectRef]: Player from which the raycast originates.
+- `def` [table]: [Gun definition table](###Gun-definition-table).
 
 ### `play_sound(sound, obj)`
 
 - Helper function to play object-centric sound.
 - `sound` [SimpleSoundSpec]: Sound to be played.
-- `obj` [ObjectRef]: Origin of the played sound.
+- `obj` [ObjectRef]: ObjectRef which is the origin of the played sound.
 
 ### `add_auto(name, def, stack)`
 
@@ -60,10 +78,16 @@ This file aims to document all the internal and external methods of the `gunslin
 - `stack` [ItemStack]: ItemStack of wielditem.
 - `player` [ObjectRef]: ObjectRef of user.
 
+### `reload(stack, player)`
+
+- Reloads stack if ammo exists and plays `def.sounds.reload`. Otherwise, just plays `def.sounds.ooa`.
+- `stack` [ItemStack]: ItemStack of wielded item; passed by `on_lclick`.
+- `player` [ObjectRef]: Player whose gun requires reloading; passed by `on_lclick`.
+
 ### `fire(stack, player)`
 
-- Responsible for firing one single shot and dealing damage if required. Reduces ammo based on `clip_size`.
-- If gun is worn out, reloads gun in `stack` if there's ammo in player inventory; else, plays a click sound.
+- Responsible for firing one single round and dealing damage if target was hit. Updates wear by `def.unit_wear`.
+- If gun is worn out, `reload` is called.
 - `stack` [ItemStack]: ItemStack passed by `on_lclick`.
 - `player` [ObjectRef]: Shooter player passed by `on_lclick`.
 
@@ -77,21 +101,21 @@ This file aims to document all the internal and external methods of the `gunslin
 
 ### `on_step(dtime)`
 
-- This is the globalstep callback that's responsible for firing automatic guns.
-- This works by calling `fire` for all guns in the `automatic` table if player's LMB is pressed.
+- Updates player's time from last shot (`gunslinger.__interval`).
+- Calls `fire` for all guns in the `automatic` table if player's LMB is pressed.
 - If LMB is released, the respective entry is removed from the table.
 
 ## Gun Definition table
 
 - `itemdef` [table]: Item definition table passed to `minetest.register_item`.
   - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
-- `clip_size` [number]: Number of bullets per-clip.
-- `fire_rate` [number]: Number of shots per-second.
+- `clip_size` [number]: Number of rounds per-clip.
+- `fire_rate` [number]: Number of rounds per-second.
 - `range` [number]: Range of fire in number of nodes.
-- `base_dmg` [number]: Base amount of damage dealt in HP.
+- `dmg_mult` [number]: Damage multiplier. Multiplied by `base_dmg` to obtain final damage value.
 - `mode` [string]: Firing mode.
-  - `"manual"`: One shot per-click, but requires manual loading for every round; aka bolt-action rifles.
-  - `"semi-automatic"`: One shot per-click. e.g. a typical 9mm pistol.
+  - `"manual"`: One round per-click, but requires manual loading for every round; aka bolt-action rifles.
+  - `"semi-automatic"`: One round per-click. e.g. a typical 9mm pistol.
   - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3. e.g. M16A4
   - `"splash"`: **(WARNING: Unimplemented)** Shotgun-style pellets; one round per-click. e.g. Remington Model 870, Winchester 94
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
@@ -99,7 +123,11 @@ This file aims to document all the internal and external methods of the `gunslin
 
 - `scope` [string]: Name of scope overlay texture.
   - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.
-- `zoom` [number]: **(WARNING: Unimplemented)** Sets player FOV in degrees when scope is enabled (defaults to 0, i.e. no zoom)
+- `zoom` [number]: **(WARNING: Unimplemented)** Sets player FOV in degrees when scope is enabled (defaults to no zoom)
   - Requires `scope` to be defined.
 
-- `fire_sound` [string]: Name of .ogg sound file without extension. Played on gun-fire.
+- `sounds` [table]: List of sounds for various events.
+  - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire`.
+  - `reload` [string]: Sound played on reload. Defaults to `gunslinger_reload`.
+  - `ooa` [string]: Sound played when the gun is out of ammo and ammo isn't available in the player's inventory. Defaults to `gunslinger_ooa`.
+  - `load` [string]: Sound played when the gun is manually loaded. Only required if `def.mode` is set to `manual`.
