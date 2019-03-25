@@ -17,11 +17,11 @@ This mod provides an API to add a variety of realistic and enjoyable guns to Min
 
 ## Architecture
 
-Gunslinger makes use of gun _types_ in order to ease registration of similar guns. A `type` is made up of a name and a table of default values to be applied to all guns registered with that type. Types are optional, and can also be omitted altogether. Guns are allowed to override their type defaults, for maximum customisability. `Raycast` is used to find target in line-of-sight, and all objects including non-player entities take damage.
+Gunslinger makes use of gun _types_ in order to ease registration of similar guns. A `type` is made up of a name and a table of default values to be applied to all guns registered with that type. Types are optional, and can also be omitted altogether. Guns are allowed to override their type defaults, for maximum customisability. `Raycast` is used to find target in line-of-sight, and all objects including non-player entities take damage. See [Deferred Raycasting](###Deferred-Raycasting) section to know more about gunslinger's projectile calculations.
 
 Final damage is calculated like so:
 
-- Initial/rated damage = `def.base_dmg`
+- Initial/rated damage = `base_dmg * def.dmg_mult`
 - If headshot, damage is increased by 50%
 - If shooter was looking through scope, damage is increased by 20%
 
@@ -29,7 +29,7 @@ Final damage is calculated like so:
 
 Enabling lite mode will disable the realistic/fancy features which are potentially lag-inducing. Recommended for large servers.
 
-> Note: As of now, enabling lite mode will only disable automatic guns, but there are plans to allow lite mode to disable much more.
+> Note: As of now, enabling lite mode will only disable automatic guns, but there are plans to allow lite mode to disable much more (see #22).
 
 ### Automatic guns
 
