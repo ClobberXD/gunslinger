@@ -128,7 +128,6 @@ local function fire(stack, player)
 		hit is always great to have.
 	]]
 	local time = 0.1 -- Default to 0.1s
-	local pos1 = vector.add(player:get_pos(), eye(player))
 	local initial_pthing = get_pointed_thing(player, def)
 	if initial_pthing then
 		local pos2 = minetest.get_pointed_thing_position(initial_pthing)
@@ -158,7 +157,7 @@ local function fire(stack, player)
 
 	-- Projectile particle
 	minetest.add_particle({
-		pos = pos1,
+		pos = vector.add(player:get_pos(), eye(player)),
 		velocity = vector.multiply(player:get_look_dir(), projectile_speed),
 		acceleration = {x = 0, y = 0, z = 0},
 		expirationtime = 2,
