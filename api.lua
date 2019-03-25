@@ -143,7 +143,7 @@ local function fire(stack, player)
 			local dmg = base_dmg * gun_def.dmg_mult
 
 			-- Add 50% damage if headshot
-			if point.y > target:get_pos().y + 1.5 then
+			if point.y > target:get_pos().y + 1.2 then
 				dmg = dmg * 1.5
 			end
 
