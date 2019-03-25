@@ -217,6 +217,7 @@ local function on_lclick(stack, player)
 	gunslinger.__interval[name] = 0
 
 	if def.mode == "automatic" and not gunslinger.__automatic[name] then
+		stack = fire(stack, player)
 		add_auto(name, def, stack)
 	elseif def.mode == "hybrid"
 			and not gunslinger.__automatic[name] then
@@ -274,18 +275,18 @@ local function on_step(dtime)
 				gunslinger.__automatic[name] = nil
 				return
 			end
-			if gunslinger.__interval[name] < info.def.unit_time then
-				return
-			end
-			if player:get_player_control().LMB then
-				-- If LMB pressed, fire
-				info.stack = fire(info.stack, player)
-				player:set_wielded_item(info.stack)
-				gunslinger.__automatic[name].stack = info.stack
-				gunslinger.__interval[name] = 0
-			else
-				-- If LMB not pressed, remove player from list
-				gunslinger.__automatic[name] = nil
+			if gunslinger.__interval[name] > info.def.unit_time then
+				if player:get_player_control().LMB and
+						player:get_wielded_item():get_name() == info.stack:get_name() then
+					-- If LMB pressed, fire
+					info.stack = fire(info.stack, player)
+					player:set_wielded_item(info.stack)
+					gunslinger.__automatic[name].stack = info.stack
+					gunslinger.__interval[name] = 0
+				else
+					-- If LMB not pressed, remove player from list
+					gunslinger.__automatic[name] = nil
+				end
 			end
 		end
 	end
