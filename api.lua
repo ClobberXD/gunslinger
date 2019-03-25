@@ -155,7 +155,7 @@ local function fire(stack, player)
 		velocity = vector.multiply(player:get_look_dir(), projectile_speed),
 		acceleration = {x = 0, y = 0, z = 0},
 		expirationtime = 2,
-		size = 1,
+		size = 3,
 		collisiondetection = true,
 		collision_removal = true,
 		object_collision = true,
