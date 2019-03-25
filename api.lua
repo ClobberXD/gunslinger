@@ -122,6 +122,7 @@ local function fire(stack, player)
 	]]
 	local time = 0.1 -- Default to 0.1s
 	local pos1 = player:get_pos()
+	pos1.y = pos1.y + player:get_properties().eye_height
 	local initial_pthing = get_pointed_thing(player, def)
 	if initial_pthing then
 		local pos2 = minetest.get_pointed_thing_position(initial_pthing)
