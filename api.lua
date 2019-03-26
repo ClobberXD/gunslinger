@@ -155,20 +155,22 @@ local function fire(stack, player)
 			local pointed = get_pointed_thing(pos, look_dir, gun_def)
 			if pointed and pointed.type == "object" then
 				local target = pointed.ref
-				local point = pointed.intersection_point
-				local dmg = base_dmg * gun_def.dmg_mult
+				if target:get_player_name() ~= obj:get_player_name() then
+					local point = pointed.intersection_point
+					local dmg = base_dmg * gun_def.dmg_mult
 
-				-- Add 50% damage if headshot
-				if point.y > target:get_pos().y + 1.2 then
-					dmg = dmg * 1.5
+					-- Add 50% damage if headshot
+					if point.y > target:get_pos().y + 1.2 then
+						dmg = dmg * 1.5
+					end
+
+					-- Add 20% more damage if player using scope
+					if gunslinger.__scopes[obj:get_player_name()] then
+						dmg = dmg * 1.2
+					end
+
+					target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
 				end
-
-				-- Add 20% more damage if player using scope
-				if gunslinger.__scopes[obj:get_player_name()] then
-					dmg = dmg * 1.2
-				end
-
-				target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
 			end
 		end, player, pos1, dir, def)
 
@@ -282,11 +284,9 @@ minetest.register_globalstep(function(dtime)
 	if not lite then
 		for name, info in pairs(gunslinger.__automatic) do
 			local player = minetest.get_player_by_name(name)
-			if not player then
+			if not player or player:get_hp() <= 0 then
 				gunslinger.__automatic[name] = nil
-				return
-			end
-			if gunslinger.__interval[name] > info.def.unit_time then
+			elseif gunslinger.__interval[name] > info.def.unit_time then
 				if player:get_player_control().LMB and
 						player:get_wielded_item():get_name() == info.stack:get_name() then
 					-- If LMB pressed, fire
