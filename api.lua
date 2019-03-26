@@ -85,14 +85,15 @@ local function reload(stack, player)
 	-- Check for ammo
 	local inv = player:get_inventory()
 	local def = gunslinger.__guns[stack:get_name()]
-	if inv:contains_item("main", def.ammo) then
-		-- Ammo exists, reload and reset wear
-		inv:remove_item("main", def.ammo)
-		play_sound(def.sounds.reload, player)
-		stack:set_wear(0)
-	else
-		-- No ammo, play out of ammo sound
+
+	local taken = inv:remove_item("main", def.ammo .. " " .. def.clip_size)
+	if taken:is_empty() then
 		play_sound(def.sounds.ooa, player)
+	else
+		local name = player:get_player_name()
+		gunslinger.__interval[name] = gunslinger.__interval[name] - def.reload_time
+		stack:set_wear(math.floor(max_wear - (taken:get_count() / def.clip_size) * max_wear))
+		play_sound(def.sounds.reload, player)
 	end
 
 	return stack
@@ -366,6 +367,10 @@ function gunslinger.register_gun(name, def)
 
 	if def.zoom and not def.scope then
 		error("gunslinger.register_gun: zoom requires scope to be defined!", 2)
+	end
+
+	if not def.reload_time then
+		def.reload_time = 3
 	end
 
 	-- Add additional helper fields for internal use
