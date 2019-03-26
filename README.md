@@ -7,6 +7,8 @@ This mod provides an API to add a variety of realistic and enjoyable guns to Min
 - **Code**: MIT
 - **Media**: CC0
 
+`gunslinger_ammo.png` (placeholder ammo texture until a better one comes by) has been taken from the `shooter` modpack by stujones11.
+
 ## Settings
 
 - `gunslinger.lite` [`bool`] (defaults to `false`)
