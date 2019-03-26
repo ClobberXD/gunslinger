@@ -195,7 +195,7 @@ end
 
 local function burst_fire(stack, player)
 	local def = gunslinger.__guns[stack:get_name()]
-	local burst = def.burst or 3
+	local burst = def.burst
 	for i = 1, burst do
 		minetest.after(i / def.fire_rate, function(st)
 			fire(st, player)
@@ -371,6 +371,10 @@ function gunslinger.register_gun(name, def)
 
 	if not def.ammo then
 		def.ammo = "gunslinger:ammo"
+	end
+
+	if def.mode == "burst" and not def.burst then
+		def.burst = 3
 	end
 
 	if not def.reload_time then
