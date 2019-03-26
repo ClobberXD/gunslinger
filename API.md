@@ -19,29 +19,37 @@ The `gunslinger` namespace has the following members:
 ### `gunslinger.register_type(name, def)`
 
 - Registers a type for `name`.
-- `def` [table]: [Gun definition table](###Gun-definition-table).
+- `def` [table]: [Gun definition table](#gun-definition-table).
 
 ### `gunslinger.register_gun(name, def)`
 
 - Registers a gun with the name `name`.
-- `def` [table]: [Gun definition table](###Gun-definition-table).
+- `def` [table]: [Gun definition table](#gun-definition-table).
 
 ### `gunslinger.get_def(name)`
 
-- Retrieves the [Gun definition table](###Gun-definition-table).
+- Retrieves the [Gun definition table](#gun-definition-table).
 
 ## Internal methods
 
-### `eye(player)`
+### `get_eye_pos(player)`
 
-- Returns player eye-height in `v3f` format. i.e. `{x = 0, y = player:get_properties().eye_height, z = 0}`
-- `player` [ObjectRef]: Player whose eye-height is returned.
+- Returns position of player eye in `v3f` format.
+- Equivalent to
 
-### `get_pointed_thing(player, def)`
+  ```lua
+  local pos = player:get_pos()
+  pos.y = pos.y + player:get_properties().eye_height
+  ```
+
+- `player` [ObjectRef]: Player whose eye position is returned.
+
+### `get_pointed_thing(pos, dir, def)`
 
 - Helper function that performs a raycast from player in the direction of player's look dir, and upto the range defined by `def.range`.
-- `player` [ObjectRef]: Player from which the raycast originates.
-- `def` [table]: [Gun definition table](###Gun-definition-table).
+- `pos` [table]: Initial position of raycast.
+- `dir` [table]: Direction of raycast.
+- `def` [table]: [Gun definition table](#gun-definition-table).
 
 ### `play_sound(sound, obj)`
 
@@ -54,19 +62,20 @@ The `gunslinger` namespace has the following members:
 - Helper function to add player entry to `automatic` table.
 - `def` and `stack` are cached locally for improved performance.
 - `name` [string]: Player name.
-- `def` [table]: [Gun definition table](###Gun-definition-table) of wielded item.
+- `def` [table]: [Gun definition table](#gun-definition-table) of wielded item.
 - `stack` [itemstack]: Itemstack of wielded item.
 
 ### `show_scope(player, scope, zoom)`
 
 - Activates gun scope, handles placement of HUD scope element.
-- `player` [ObjectRef]: Player obj. used for HUD element creation.
-- `scope` and `zoom`: Gun definition fields.
+- `player` [ObjectRef]: Player used for HUD element creation.
+- `scope` [string]: Name of scope overlay texture.
+- `zoom` [number]: FOV that will override player's default FOV.
 
 ### `hide_scope(player)`
 
 - De-activates gun scope, removes HUD element.
-- `player` [ObjectRef]: Player obj. to remove HUD element from.
+- `player` [ObjectRef]: Player to remove HUD element from.
 
 ### `on_lclick(stack, player)`
 
@@ -81,7 +90,7 @@ The `gunslinger` namespace has the following members:
 
 - `on_place`/`on_secondary_use` callback for all registered guns. Toggles scope view.
 - `stack` [ItemStack]: ItemStack of wielditem.
-- `player` [ObjectRef]: ObjectRef of user.
+- `player` [ObjectRef]: Right-clicker.
 
 ### `reload(stack, player)`
 
@@ -97,11 +106,6 @@ The `gunslinger` namespace has the following members:
 ### `burst_fire(stack, player)`
 
 - Helper method to fire in burst mode.
-- Takes the same arguments as `on_lclick`.
-
-### `splash_fire(stack, player)`
-
-- Helper method to fire pellets shotgun-style.
 - Takes the same arguments as `on_lclick`.
 
 ### `on_step(dtime)`
@@ -126,8 +130,10 @@ The `gunslinger` namespace has the following members:
   - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
 
 - `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo`.
-- `dmg_mult` [number]: Damage multiplier. Multiplied by `base_dmg` to obtain initial/rated damage value. Defaults to 1.
+- `dmg_mult` [number]: Damage multiplier. Multiplied with `base_dmg` to obtain initial/rated damage value. Defaults to 1.
+- `spread_mult` [number]: Spread multiplier. Multiplied with `base_spread` to obtain spread threshold for projectile. Defaults to 0.
 - `reload_time` [number]: Reload time in seconds. Defaults to 3 to match default reload sound.
+- `pellets` [number]: Number of pellets per-round. Used for firing multiple pellets shotgun-style. Defaults to 1, meaning only one "pellet" is fired each round.
 - `sounds` [table]: Sounds for various events.
   - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire.ogg`.
   - `reload` [string]: Sound played on reload. Defaults to `gunslinger_reload.ogg`.
