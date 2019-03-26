@@ -86,23 +86,23 @@ The `gunslinger` namespace has the following members:
 ### `reload(stack, player)`
 
 - Reloads stack if ammo exists and plays `def.sounds.reload`. Otherwise, just plays `def.sounds.ooa`.
-- `stack` [ItemStack]: ItemStack of wielded item; passed by `on_lclick`.
-- `player` [ObjectRef]: Player whose gun requires reloading; passed by `on_lclick`.
+- Takes the same arguments as `on_lclick`.
 
 ### `fire(stack, player)`
 
 - Responsible for firing one single round and dealing damage if target was hit. Updates wear by `def.unit_wear`.
 - If gun is worn out, `reload` is called.
-- `stack` [ItemStack]: ItemStack passed by `on_lclick`.
-- `player` [ObjectRef]: Shooter player passed by `on_lclick`.
+- Takes the same arguments as `on_lclick`.
 
 ### `burst_fire(stack, player)`
 
-- Helper method to fire in burst mode. Takes the same arguments as `fire`.
+- Helper method to fire in burst mode.
+- Takes the same arguments as `on_lclick`.
 
 ### `splash_fire(stack, player)`
 
-- Helper method to fire shotgun-style. Takes the same arguments as `fire`.
+- Helper method to fire pellets shotgun-style.
+- Takes the same arguments as `on_lclick`.
 
 ### `on_step(dtime)`
 
@@ -114,11 +114,9 @@ The `gunslinger` namespace has the following members:
 
 - `itemdef` [table]: Item definition table passed to `minetest.register_item`.
   - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
-- `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo` if undefined.
 - `clip_size` [number]: Number of rounds per-clip.
 - `fire_rate` [number]: Number of rounds per-second.
 - `range` [number]: Range of fire in number of nodes.
-- `dmg_mult` [number]: Damage multiplier. Multiplied by `base_dmg` to obtain final damage value.
 - `mode` [string]: Firing mode.
   - `"manual"`: One round per-click, but requires manual loading for every round; aka bolt-action rifles.
   - `"semi-automatic"`: One round per-click. e.g. a typical 9mm pistol.
@@ -127,13 +125,16 @@ The `gunslinger` namespace has the following members:
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
   - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
 
+- `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo`.
+- `dmg_mult` [number]: Damage multiplier. Multiplied by `base_dmg` to obtain initial/rated damage value. Defaults to 1.
+- `reload_time` [number]: Reload time in seconds. Defaults to 3 to match default reload sound.
+- `sounds` [table]: Sounds for various events.
+  - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire.ogg`.
+  - `reload` [string]: Sound played on reload. Defaults to `gunslinger_reload.ogg`.
+  - `ooa` [string]: Sound played when the gun is out of ammo and ammo isn't available in the player's inventory. Defaults to `gunslinger_ooa.ogg`.
+  - `load` [string]: Sound played when the gun is manually loaded. Only used if `mode` is set to `manual`.
+
 - `scope` [string]: Name of scope overlay texture.
   - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.
 - `zoom` [number]: **(WARNING: Unimplemented)** Sets player FOV in degrees when scope is enabled (defaults to no zoom)
   - Requires `scope` to be defined.
-
-- `sounds` [table]: List of sounds for various events.
-  - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire`.
-  - `reload` [string]: Sound played on reload. Defaults to `gunslinger_reload`.
-  - `ooa` [string]: Sound played when the gun is out of ammo and ammo isn't available in the player's inventory. Defaults to `gunslinger_ooa`.
-  - `load` [string]: Sound played when the gun is manually loaded. Only required if `def.mode` is set to `manual`.

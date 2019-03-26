@@ -12,16 +12,16 @@ This mod provides an API to add a variety of realistic and enjoyable guns to Min
 ## Settings
 
 - `gunslinger.lite` [`bool`] (defaults to `false`)
-  - Toggles [lite mode](###Lite-mode)
+  - Toggles [lite mode](#lite-mode)
 - `gunslinger.disable_builtin` [`bool`] (defaults to `false`)
   - Enables/Disables builtin guns - only the API will be provided.
   - Useful if mods/games provide custom guns.
 
 ## Architecture
 
-Gunslinger makes use of gun _types_ in order to ease registration of similar guns. A `type` is made up of a name and a table of default values to be applied to all guns registered with that type. Types are optional, and can also be omitted altogether. Guns are allowed to override their type defaults, for maximum customisability. `Raycast` is used to find target in line-of-sight, and all objects including non-player entities take damage. See [Deferred Raycasting](###Deferred-Raycasting) section to know more about gunslinger's projectile calculations.
+Gunslinger makes use of gun _types_ in order to ease registration of similar guns. A `type` is made up of a name and a table of default values to be applied to all guns registered with that type. Types are optional, and can also be omitted altogether. Guns are allowed to override their type defaults, for maximum customisability. `Raycast` is used to find target in line-of-sight, and all objects including non-player entities take damage. See [Deferred Raycasting](#deferred-raycasting) section to know more about gunslinger's projectile calculations.
 
-Final damage is calculated like so:
+Final damage to target is calculated like so:
 
 - Initial/rated damage = `base_dmg * def.dmg_mult`
 - If headshot, damage is increased by 50%
@@ -31,7 +31,7 @@ Final damage is calculated like so:
 
 Enabling lite mode will disable the realistic/fancy features which are potentially lag-inducing. Recommended for large servers.
 
-> Note: As of now, enabling lite mode will only disable automatic guns, but there are plans to allow lite mode to disable much more (see #22).
+> Note: As of now, enabling lite mode will only disable automatic guns, but there are plans to allow lite mode to disable much more.
 
 ### Automatic guns
 
