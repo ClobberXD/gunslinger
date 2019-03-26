@@ -10,32 +10,34 @@ local max_wear = 65534
 local projectile_speed = 500
 local lite = minetest.settings:get_bool("gunslinger.lite")
 
--- Base damage value of 1 HP. Guns can modify this by defining dmg_mult
+-- Base damage value.
 local base_dmg = 1
+
+-- Base spread value
+local base_spread = 0.001
 
 --
 -- Internal API functions
 --
 
-local function eye(player)
+local function get_eye_pos(player)
 	if not player then
 		return
 	end
 
-	return {x = 0, y = player:get_properties().eye_height, z = 0}
+	local pos = player:get_pos()
+	pos.y = pos.y + player:get_properties().eye_height
+	return pos
 end
 
-local function get_pointed_thing(player, def)
-	if not player or not def then
+local function get_pointed_thing(pos, dir, def)
+	if not pos or not dir or not def then
 		error("gunslinger: Invalid get_pointed_thing invocation" ..
 		        " (missing params)", 2)
 	end
 
-	local dir = player:get_look_dir()
-	local p1 = vector.add(player:get_pos(), eye(player))
-	p1 = vector.add(p1, dir)
-	local p2 = vector.add(p1, vector.multiply(dir, def.range))
-	local ray = minetest.raycast(p1, p2)
+	local pos2 = vector.add(pos, vector.multiply(dir, def.range))
+	local ray = minetest.raycast(pos, pos2)
 	return ray:next()
 end
 
@@ -129,46 +131,60 @@ local function fire(stack, player)
 		hit is always great to have.
 	]]
 	local time = 0.1 -- Default to 0.1s
-	local pos1 = vector.add(player:get_pos(), eye(player))
-	local initial_pthing = get_pointed_thing(player, def)
+
+	local dir = player:get_look_dir()
+
+	local pos1 = get_eye_pos(player)
+	pos1 = vector.add(pos1, dir)
+	local initial_pthing = get_pointed_thing(pos1, dir, def)
 	if initial_pthing then
 		local pos2 = minetest.get_pointed_thing_position(initial_pthing)
 		time = vector.distance(pos1, pos2) / projectile_speed
 	end
 
-	minetest.after(time, function(obj, gun_def)
-		local pointed = get_pointed_thing(obj, gun_def)
-		if pointed and pointed.type == "object" then
-			local target = pointed.ref
-			local point = pointed.intersection_point
-			local dmg = base_dmg * gun_def.dmg_mult
-
-			-- Add 50% damage if headshot
-			if point.y > target:get_pos().y + 1.2 then
-				dmg = dmg * 1.5
-			end
-
-			-- Add 20% more damage if player using scope
-			if gunslinger.__scopes[obj:get_player_name()] then
-				dmg = dmg * 1.2
-			end
-
-			target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
+	for i = 1, def.pellets do
+		-- Mimic inaccuracy by applying randomised miniscule deviations
+		local spread = base_spread * def.spread_mult
+		if spread ~= 0 then
+			dir = vector.apply(dir, function(n)
+				return n + math.random(-spread, spread)
+			end)
 		end
-	end, player, def)
 
-	-- Projectile particle
-	minetest.add_particle({
-		pos = pos1,
-		velocity = vector.multiply(player:get_look_dir(), projectile_speed),
-		acceleration = {x = 0, y = 0, z = 0},
-		expirationtime = 2,
-		size = 3,
-		collisiondetection = true,
-		collision_removal = true,
-		object_collision = true,
-		glow = 5
-	})
+		minetest.after(time, function(obj, pos, look_dir, gun_def)
+			local pointed = get_pointed_thing(pos, look_dir, gun_def)
+			if pointed and pointed.type == "object" then
+				local target = pointed.ref
+				local point = pointed.intersection_point
+				local dmg = base_dmg * gun_def.dmg_mult
+
+				-- Add 50% damage if headshot
+				if point.y > target:get_pos().y + 1.2 then
+					dmg = dmg * 1.5
+				end
+
+				-- Add 20% more damage if player using scope
+				if gunslinger.__scopes[obj:get_player_name()] then
+					dmg = dmg * 1.2
+				end
+
+				target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
+			end
+		end, player, pos1, dir, def)
+
+		-- Projectile particle
+		minetest.add_particle({
+			pos = pos1,
+			velocity = vector.multiply(dir, projectile_speed),
+			acceleration = {x = 0, y = 0, z = 0},
+			expirationtime = 3,
+			size = 3,
+			collisiondetection = true,
+			collision_removal = true,
+			object_collision = true,
+			glow = 10
+		})
+	end
 
 	-- Update wear
 	wear = wear + def.unit_wear
@@ -193,10 +209,6 @@ local function burst_fire(stack, player)
 	stack:add_wear(def.unit_wear * burst)
 
 	return stack
-end
-
-local function splash_fire(stack, player)
-	-- TODO
 end
 
 --------------------------------
@@ -229,8 +241,6 @@ local function on_lclick(stack, player)
 		end
 	elseif def.mode == "burst" then
 		stack = burst_fire(stack, player)
-	elseif def.mode == "splash" then
-		stack = splash_fire(stack, player)
 	elseif def.mode == "semi-automatic" then
 		stack = fire(stack, player)
 	elseif def.mode == "manual" then
@@ -265,7 +275,7 @@ end
 
 --------------------------------
 
-local function on_step(dtime)
+minetest.register_globalstep(function(dtime)
 	for name in pairs(gunslinger.__interval) do
 		gunslinger.__interval[name] = gunslinger.__interval[name] + dtime
 	end
@@ -291,9 +301,7 @@ local function on_step(dtime)
 			end
 		end
 	end
-end
-
-minetest.register_globalstep(on_step)
+end)
 
 --
 -- External API functions
@@ -328,8 +336,8 @@ function gunslinger.register_gun(name, def)
 	end
 
 	-- Abort when making use of unimplemented features
-	if def.mode == "splash" or def.zoom then
-		error("register_gun: Unimplemented feature!", 2)
+	if def.zoom then
+		error("gunslinger.register_gun: Unimplemented feature!", 2)
 	end
 
 	if (def.mode == "automatic" or def.mode == "hybrid")
@@ -365,12 +373,20 @@ function gunslinger.register_gun(name, def)
 		def.ammo = "gunslinger:ammo"
 	end
 
-	if def.zoom and not def.scope then
-		error("gunslinger.register_gun: zoom requires scope to be defined!", 2)
-	end
-
 	if not def.reload_time then
 		def.reload_time = 3
+	end
+
+	if not def.spread_mult then
+		def.spread_mult = 0
+	end
+
+	if not def.pellets then
+		def.pellets = 1
+	end
+
+	if def.zoom and not def.scope then
+		error("gunslinger.register_gun: zoom requires scope to be defined!", 2)
 	end
 
 	-- Add additional helper fields for internal use
