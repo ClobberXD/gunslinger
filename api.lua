@@ -161,6 +161,15 @@ local function fire(stack, player)
 
 		minetest.after(time, function(obj, pos, look_dir, gun_def)
 			local pointed = get_pointed_thing(pos, look_dir, gun_def)
+			if pointed and pointed.intersection_point and pointed.type == "node" then
+				minetest.add_particle({
+					pos = vector.subtract(pointed.intersection_point, vector.divide(look_dir, 50)), --bring it out a bit so it's not partially inside the node
+					expirationtime = 10,
+					size = 2,
+					texture = "gunslinger_decal.png",
+					vertical = true
+				})
+			end
 			if pointed and pointed.type == "object" then
 				local target = pointed.ref
 				if target:get_player_name() ~= obj:get_player_name() then
