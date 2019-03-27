@@ -153,9 +153,9 @@ local function fire(stack, player)
 
 	for i = 1, def.pellets do
 		-- Mimic inaccuracy by applying randomised miniscule deviations
-		if def.spread ~= 0 then
+		if def.spread_mult ~= 0 then
 			dir = vector.apply(dir, function(n)
-				return n + random:next(-def.spread, def.spread) * base_spread
+				return n + random:next(-def.spread_mult, def.spread_mult) * base_spread
 			end)
 		end
 
