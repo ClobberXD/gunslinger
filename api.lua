@@ -101,12 +101,13 @@ local function reload(stack, player)
 		gunslinger.__interval[name] = gunslinger.__interval[name] - def.reload_time
 		play_sound(def.sounds.reload, player)
 		meta:set_string("reloading")
-		minetest.after(def.reload_time, function(obj, t_stack, gun_def, wear_max, s_meta)
-			t_stack:set_wear(math.floor(wear_max -
-					(t_stack:get_count() / gun_def.clip_size) * wear_max))
+		local wear = math.floor(max_wear -
+				(taken:get_count() / def.clip_size) * max_wear)
+		minetest.after(def.reload_time, function(obj, rstack, twear, s_meta)
+			rstack:set_wear(twear)
 			s_meta:set_string("reloading", "")
-			player:set_wielded_item(t_stack)
-		end, player, taken, def, max_wear, meta)
+			player:set_wielded_item(rstack)
+		end, player, stack, wear, meta)
 	end
 
 	return stack
