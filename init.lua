@@ -14,3 +14,5 @@ minetest.register_craftitem("gunslinger:ammo", {
 	inventory_image = "gunslinger_ammo.png",
 	stack_max = 300
 })
+
+minetest.register_alias("ammo", "gunslinger:ammo")
