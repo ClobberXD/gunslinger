@@ -6,5 +6,6 @@ globals = {
 	"table",
 	"vector",
 	"minetest",
-	"ItemStack"
+	"ItemStack",
+	"PcgRandom"
 }

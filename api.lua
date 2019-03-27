@@ -149,12 +149,13 @@ local function fire(stack, player)
 		time = vector.distance(pos1, pos2) / projectile_speed
 	end
 
+	local random = PcgRandom(os.time())
+
 	for i = 1, def.pellets do
 		-- Mimic inaccuracy by applying randomised miniscule deviations
-		local spread = base_spread * def.spread_mult
-		if spread ~= 0 then
+		if def.spread ~= 0 then
 			dir = vector.apply(dir, function(n)
-				return n + math.random(-spread, spread)
+				return n + random:next(-def.spread, def.spread) * base_spread
 			end)
 		end
 
