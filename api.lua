@@ -87,6 +87,11 @@ local function reload(stack, player)
 	-- Check for ammo
 	local inv = player:get_inventory()
 	local def = gunslinger.__guns[stack:get_name()]
+	local meta = stack:get_meta()
+
+	if meta:contains("reloading") then
+		return
+	end
 
 	local taken = inv:remove_item("main", def.ammo .. " " .. def.clip_size)
 	if taken:is_empty() then
@@ -94,8 +99,14 @@ local function reload(stack, player)
 	else
 		local name = player:get_player_name()
 		gunslinger.__interval[name] = gunslinger.__interval[name] - def.reload_time
-		stack:set_wear(math.floor(max_wear - (taken:get_count() / def.clip_size) * max_wear))
 		play_sound(def.sounds.reload, player)
+		meta:set_string("reloading")
+		minetest.after(def.reload_time, function(obj, t_stack, gun_def, wear_max, s_meta)
+			t_stack:set_wear(math.floor(wear_max -
+					(t_stack:get_count() / gun_def.clip_size) * wear_max))
+			s_meta:set_string("reloading", "")
+			player:set_wielded_item(t_stack)
+		end, player, taken, def, max_wear, meta)
 	end
 
 	return stack
