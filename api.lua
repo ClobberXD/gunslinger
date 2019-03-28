@@ -163,7 +163,8 @@ local function fire(stack, player)
 			local pointed = get_pointed_thing(pos, look_dir, gun_def)
 			if pointed and pointed.intersection_point and pointed.type == "node" then
 				minetest.add_particle({
-					pos = vector.subtract(pointed.intersection_point, vector.divide(look_dir, 50)), --bring it out a bit so it's not partially inside the node
+					pos = vector.subtract(pointed.intersection_point, vector.divide(look_dir, 50)),
+					--bring it out a bit so it's not partially inside the node
 					expirationtime = 10,
 					size = 2,
 					texture = "gunslinger_decal.png",
