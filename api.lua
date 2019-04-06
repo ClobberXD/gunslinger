@@ -6,15 +6,13 @@ gunslinger = {
 	__interval = {}
 }
 
-local max_wear = 65534
-local projectile_speed = 500
-local lite = minetest.settings:get_bool("gunslinger.lite")
-
--- Base damage value.
-local base_dmg = 1
-
--- Base spread value
-local base_spread = 0.001
+local config = {
+	max_wear = 65534,
+	projectile_speed = 500,
+	base_dmg = 1,
+	base_spread = 0.001,
+	lite = minetest.settings:get_bool("gunslinger.lite")
+}
 
 --
 -- Internal API functions
@@ -101,8 +99,8 @@ local function reload(stack, player)
 		gunslinger.__interval[name] = gunslinger.__interval[name] - def.reload_time
 		play_sound(def.sounds.reload, player)
 		meta:set_string("reloading")
-		local wear = math.floor(max_wear -
-				(taken:get_count() / def.clip_size) * max_wear)
+		local wear = math.floor(config.max_wear -
+				(taken:get_count() / def.clip_size) * config.max_wear)
 		minetest.after(def.reload_time, function(obj, rstack, twear, s_meta)
 			rstack:set_wear(twear)
 			s_meta:set_string("reloading", "")
@@ -146,7 +144,7 @@ local function fire(stack, player)
 	local initial_pthing = get_pointed_thing(pos1, dir, def)
 	if initial_pthing then
 		local pos2 = minetest.get_pointed_thing_position(initial_pthing)
-		time = vector.distance(pos1, pos2) / projectile_speed
+		time = vector.distance(pos1, pos2) / config.projectile_speed
 	end
 
 	local random = PcgRandom(os.time())
@@ -155,7 +153,7 @@ local function fire(stack, player)
 		-- Mimic inaccuracy by applying randomised miniscule deviations
 		if def.spread_mult ~= 0 then
 			dir = vector.apply(dir, function(n)
-				return n + random:next(-def.spread_mult, def.spread_mult) * base_spread
+				return n + random:next(-def.spread_mult, def.spread_mult) * config.base_spread
 			end)
 		end
 
@@ -165,7 +163,7 @@ local function fire(stack, player)
 				local target = pointed.ref
 				if target:get_player_name() ~= obj:get_player_name() then
 					local point = pointed.intersection_point
-					local dmg = base_dmg * gun_def.dmg_mult
+					local dmg = config.base_dmg * gun_def.dmg_mult
 
 					-- Add 50% damage if headshot
 					if point.y > target:get_pos().y + 1.2 then
@@ -185,7 +183,7 @@ local function fire(stack, player)
 		-- Projectile particle
 		minetest.add_particle({
 			pos = pos1,
-			velocity = vector.multiply(dir, projectile_speed),
+			velocity = vector.multiply(dir, config.projectile_speed),
 			acceleration = {x = 0, y = 0, z = 0},
 			expirationtime = 3,
 			size = 3,
@@ -198,8 +196,8 @@ local function fire(stack, player)
 
 	-- Update wear
 	local wear = stack:get_wear() + def.unit_wear
-	if wear > max_wear then
-		wear = max_wear
+	if wear > config.max_wear then
+		wear = config.max_wear
 	end
 	stack:set_wear(wear)
 
@@ -240,7 +238,7 @@ local function on_lclick(stack, player)
 	gunslinger.__interval[name] = 0
 
 	local wear = stack:get_wear()
-	if wear == max_wear then
+	if wear == config.max_wear then
 		return reload(stack, player)
 	end
 
@@ -294,7 +292,7 @@ minetest.register_globalstep(function(dtime)
 	for name in pairs(gunslinger.__interval) do
 		gunslinger.__interval[name] = gunslinger.__interval[name] + dtime
 	end
-	if not lite then
+	if not config.lite then
 		for name, info in pairs(gunslinger.__automatic) do
 			local player = minetest.get_player_by_name(name)
 			if not player or player:get_hp() <= 0 then
@@ -354,7 +352,7 @@ function gunslinger.register_gun(name, def)
 	end
 
 	if (def.mode == "automatic" or def.mode == "hybrid")
-			and lite then
+			and config.lite then
 		error("gunslinger.register_gun: Attempting to register gun of " ..
 				"type '" .. def.mode .. "' when lite mode is enabled", 2)
 	end
@@ -407,7 +405,7 @@ function gunslinger.register_gun(name, def)
 	end
 
 	-- Add additional helper fields for internal use
-	def.unit_wear = math.ceil(max_wear / def.clip_size)
+	def.unit_wear = math.ceil(config.max_wear / def.clip_size)
 	def.unit_time = 1 / def.fire_rate
 
 	-- Register gun
