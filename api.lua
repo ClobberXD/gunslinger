@@ -18,6 +18,10 @@ local config = {
 -- Internal API functions
 --
 
+local function rangelim(low, val, high)
+	return math.max(low, math.min(val, high))
+end
+
 local function get_eye_pos(player)
 	if not player then
 		return
