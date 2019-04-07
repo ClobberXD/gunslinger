@@ -4,7 +4,7 @@ This file aims to thoroughly document the `gunslinger` API.
 
 ## `gunslinger` namespace
 
-(**Note**: _It's not recommended to directly access the private members in the `gunslinger` namespace_)
+(**Note**: _It's not recommended to directly access the private members of the `gunslinger` namespace_)
 
 The `gunslinger` namespace has the following members:
 
@@ -125,13 +125,13 @@ The `gunslinger` namespace has the following members:
   - `"manual"`: One round per-click, but requires manual loading for every round; aka bolt-action rifles.
   - `"semi-automatic"`: One round per-click. e.g. a typical 9mm pistol.
   - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3. e.g. M16A4
-  - `"splash"`: **(WARNING: Unimplemented)** Shotgun-style pellets; one round per-click. e.g. Remington Model 870, Winchester 94
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
   - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
 
 - `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo`.
 - `dmg_mult` [number]: Damage multiplier. Multiplied with `base_dmg` to obtain initial/rated damage value. Defaults to 1.
 - `spread_mult` [number]: Spread multiplier. Multiplied with `base_spread` to obtain spread threshold for projectile. Defaults to 0.
+- `recoil_mult` [number]: Recoil multiplier. Multiplied with `base_recoil` to obtain final recoil per-round. Defaults to 0.
 - `reload_time` [number]: Reload time in seconds. Defaults to 3 to match default reload sound.
 - `pellets` [number]: Number of pellets per-round. Used for firing multiple pellets shotgun-style. Defaults to 1, meaning only one "pellet" is fired each round.
 - `sounds` [table]: Sounds for various events.
@@ -142,5 +142,4 @@ The `gunslinger` namespace has the following members:
 
 - `scope` [string]: Name of scope overlay texture.
   - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.
-- `zoom` [number]: **(WARNING: Unimplemented)** Sets player FOV in degrees when scope is enabled (defaults to no zoom)
   - Requires `scope` to be defined.

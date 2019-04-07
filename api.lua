@@ -11,6 +11,7 @@ local config = {
 	projectile_speed = 500,
 	base_dmg = 1,
 	base_spread = 0.001,
+	base_recoil = 0.001,
 	lite = minetest.settings:get_bool("gunslinger.lite")
 }
 
@@ -197,6 +198,12 @@ local function fire(stack, player)
 			glow = 10
 		})
 	end
+
+	-- Simulate recoil
+	local offset = config.base_recoil * def.recoil_mult
+	local look_vertical = player:get_look_vertical() - offset
+	look_vertical = rangelim(-math.pi / 2, look_vertical, math.pi / 2)
+	player:set_look_vertical(look_vertical)
 
 	-- Update wear
 	local wear = stack:get_wear() + def.unit_wear
@@ -402,6 +409,10 @@ function gunslinger.register_gun(name, def)
 
 	if not def.pellets then
 		def.pellets = 1
+	end
+
+	if not def.recoil_mult then
+		def.recoil_mult = 0
 	end
 
 	if def.zoom and not def.scope then
