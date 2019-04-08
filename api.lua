@@ -1,4 +1,5 @@
 gunslinger = {
+	__stack = {},
 	__guns = {},
 	__types = {},
 	__automatic = {},
@@ -223,17 +224,15 @@ end
 
 local function burst_fire(stack, player)
 	local def = gunslinger.__guns[stack:get_name()]
-	local burst = def.burst
-	for i = 1, burst do
-		minetest.after(i / def.fire_rate, function(st)
-			fire(st, player)
-		end, stack)
+	for i = 1, def.burst do
+		minetest.after(i / def.fire_rate, function(...)
+			-- Use global var to store stack, because the stack
+			-- can't be directly accessed outside minetest.after
+			gunslinger.__stack[arg[2]:get_player_name()] = fire(arg[1], arg[2])
+		end, stack, player)
 	end
-	-- Manually add wear to stack, as functions can't return
-	-- values from within minetest.after
-	stack:add_wear(def.unit_wear * burst)
 
-	return stack
+	return gunslinger.__stack[player:get_player_name()]
 end
 
 --------------------------------
