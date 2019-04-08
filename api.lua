@@ -310,14 +310,16 @@ minetest.register_globalstep(function(dtime)
 				gunslinger.__automatic[name] = nil
 			elseif gunslinger.__interval[name] > info.def.unit_time then
 				if player:get_player_control().LMB and
-						player:get_wielded_item():get_name() == info.stack:get_name() then
+						player:get_wielded_item():get_name() ==
+						info.stack:get_name() then
 					-- If LMB pressed, fire
 					info.stack = fire(info.stack, player)
 					player:set_wielded_item(info.stack)
-					gunslinger.__automatic[name].stack = info.stack
+					if gunslinger.__automatic[name] then
+						gunslinger.__automatic[name].stack = info.stack
+					end
 					gunslinger.__interval[name] = 0
 				else
-					-- If LMB not pressed, remove player from list
 					gunslinger.__automatic[name] = nil
 				end
 			end
