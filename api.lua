@@ -126,6 +126,12 @@ local function fire(stack, player)
 		return stack
 	end
 
+	local wear = stack:get_wear()
+	if wear == config.max_wear then
+		gunslinger.__automatic[player:get_player_name()] = nil
+		return reload(stack, player)
+	end
+
 	-- Play gunshot sound
 	play_sound(def.sounds.fire, player)
 
@@ -206,7 +212,7 @@ local function fire(stack, player)
 	player:set_look_vertical(look_vertical)
 
 	-- Update wear
-	local wear = stack:get_wear() + def.unit_wear
+	wear = stack:get_wear() + def.unit_wear
 	if wear > config.max_wear then
 		wear = config.max_wear
 	end
@@ -247,11 +253,6 @@ local function on_lclick(stack, player)
 		return
 	end
 	gunslinger.__interval[name] = 0
-
-	local wear = stack:get_wear()
-	if wear == config.max_wear then
-		return reload(stack, player)
-	end
 
 	if def.mode == "automatic" and not gunslinger.__automatic[name] then
 		stack = fire(stack, player)
