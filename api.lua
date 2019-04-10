@@ -20,8 +20,14 @@ local config = {
 -- Internal API functions
 --
 
-local function rangelim(low, val, high)
-	return math.max(low, math.min(val, high))
+local function rangelim(low, val, high, default)
+	if not val and default then
+		return default
+	elseif low and val and high then
+		return math.max(low, math.min(val, high))
+	else
+		error("gunslinger: Invalid rangelim invokation!", 2)
+	end
 end
 
 local function get_eye_pos(player)
@@ -37,7 +43,7 @@ end
 local function get_pointed_thing(pos, dir, def)
 	if not pos or not dir or not def then
 		error("gunslinger: Invalid get_pointed_thing invocation" ..
-		        " (missing params)", 2)
+				" (missing params)", 2)
 	end
 
 	local pos2 = vector.add(pos, vector.multiply(dir, def.range))

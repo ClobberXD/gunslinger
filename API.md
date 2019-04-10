@@ -32,6 +32,13 @@ The `gunslinger` namespace has the following members:
 
 ## Internal methods
 
+### `rangelim(min, val, max, default)`
+
+- Convenience function used for validating gun definition fields. Returns a range-limited value if `val` exists, or returns `default`.
+- `min`, `max` [number]: Allowed minimum and maximum bounds for the value.
+- `val` [number]: Value to be validated and returned.
+- `default` [number]: Value to be returned if `val` is `nil`.
+
 ### `get_eye_pos(player)`
 
 - Returns position of player eye in `v3f` format.
