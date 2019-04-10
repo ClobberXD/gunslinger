@@ -65,6 +65,41 @@ local function add_auto(name, def, stack)
 	}
 end
 
+local function validate_def(def)
+	if type(def) ~= "table" then
+		error("gunslinger.register_gun: Gun definition has to be a table!", 2)
+	end
+
+	if (def.mode == "automatic" or def.mode == "hybrid") and config.lite then
+		error("gunslinger.register_gun: Attempting to register gun of " ..
+				"type '" .. def.mode .. "' when lite mode is enabled", 2)
+	end
+
+	if not def.ammo then
+		def.ammo = "gunslinger:ammo"
+	end
+
+	if def.mode == "burst" then
+		def.burst = rangelim(2, def.burst, 5, 3)
+	end
+
+	def.dmg_mult = rangelim(1, def.dmg_mult, 100, 1)
+	def.reload_time = rangelim(1, def.reload_time, 10, 2.5)
+	def.spread_mult = rangelim(0, def.spread_mult, 500, 0)
+	def.recoil_mult = rangelim(0, def.recoil_mult, 500, 0)
+	def.pellets = rangelim(1, def.pellets, 20, 1)
+
+	-- Initialize sounds
+	do
+		def.sounds = def.sounds or {}
+		def.sounds.fire = def.sounds.fire or "gunslinger_fire"
+		def.sounds.reload = def.sounds.reload or "gunslinger_reload"
+		def.sounds.ooa = def.sounds.ooa or "gunslinger_ooa"
+	end
+
+	return def
+end
+
 --------------------------------
 
 local function show_scope(player, scope, zoom)
@@ -365,67 +400,7 @@ function gunslinger.register_gun(name, def)
 		end
 	end
 
-	-- Abort when making use of unimplemented features
-	if def.zoom then
-		error("gunslinger.register_gun: Unimplemented feature!", 2)
-	end
-
-	if (def.mode == "automatic" or def.mode == "hybrid")
-			and config.lite then
-		error("gunslinger.register_gun: Attempting to register gun of " ..
-				"type '" .. def.mode .. "' when lite mode is enabled", 2)
-	end
-
-	if not def.dmg_mult then
-		def.dmg_mult = 1
-	end
-
-	-- Initialize sounds
-	do
-		if not def.sounds then
-			def.sounds = {}
-		end
-
-		if not def.sounds.fire then
-			def.sounds.fire = "gunslinger_fire"
-		end
-
-		if not def.sounds.reload then
-			def.sounds.reload = "gunslinger_reload"
-		end
-
-		if not def.sounds.ooa then
-			def.sounds.ooa = "gunslinger_ooa"
-		end
-	end
-
-	if not def.ammo then
-		def.ammo = "gunslinger:ammo"
-	end
-
-	if def.mode == "burst" and not def.burst then
-		def.burst = 3
-	end
-
-	if not def.reload_time then
-		def.reload_time = 3
-	end
-
-	if not def.spread_mult then
-		def.spread_mult = 0
-	end
-
-	if not def.pellets then
-		def.pellets = 1
-	end
-
-	if not def.recoil_mult then
-		def.recoil_mult = 0
-	end
-
-	if def.zoom and not def.scope then
-		error("gunslinger.register_gun: zoom requires scope to be defined!", 2)
-	end
+	def = validate_def(def)
 
 	-- Add additional helper fields for internal use
 	def.unit_wear = math.ceil(config.max_wear / def.clip_size)
