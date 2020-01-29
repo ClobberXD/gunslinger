@@ -135,6 +135,10 @@ The `gunslinger` namespace has the following members:
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
   - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
 
+- `hit_type` [string]: Weapon hit detection type, defaults to projectile.
+  - `"hitscan"`: Gun deals damage to the pointed target instantly, bullets have no travel time.
+  - `"projectile"`: Bullets are modeled as projectiles, more realistic. 
+
 - `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo`.
 - `dmg_mult` [number]: Damage multiplier. Multiplied with `base_dmg` to obtain initial/rated damage value. Defaults to 1.
 - `spread_mult` [number]: Spread multiplier. Multiplied with `base_spread` to obtain spread threshold for projectile. Defaults to 0.
