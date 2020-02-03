@@ -162,6 +162,36 @@ local function reload(stack, player)
 	return stack
 end
 
+-- hit the target
+local function hit_target(obj, pos, look_dir, gun_def, init_pointed)
+	-- this is here because of minetest.after
+	if init_pointed ~= 0 then
+		pointed = init_pointed
+	else
+		pointed = get_pointed_thing(pos, look_dir, gun_def)
+	end
+
+	if pointed and pointed.type == "object" then
+		local target = pointed.ref
+		if target:get_player_name() ~= obj:get_player_name() then
+			local point = pointed.intersection_point
+			local dmg = config.base_dmg * gun_def.dmg_mult
+
+			-- Add 50% damage if headshot
+			if point.y > target:get_pos().y + 1.2 then
+				dmg = dmg * 1.5
+			end
+
+			-- Add 20% more damage if player using scope
+			if gunslinger.__scopes[obj:get_player_name()] then
+				dmg = dmg * 1.2
+			end
+
+			target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
+		end
+	end
+end
+
 local function fire(stack, player)
 	if not stack then
 		return
@@ -186,115 +216,52 @@ local function fire(stack, player)
 	pos1 = vector.add(pos1, dir)
 	local random = PcgRandom(os.time())
 
-	-- handle hitscan / projectile weapons
-	if def.hit_type == "hitscan" then
-		local pointed = get_pointed_thing(pos1, dir, def)
+	local initial_pthing = get_pointed_thing(pos1, dir, def)
 
-		for i = 1, def.pellets do
-			-- Mimic inaccuracy by applying randomised miniscule deviations
-			if def.spread_mult ~= 0 then
-				dir = vector.apply(dir, function(n)
-					return n + random:next(-def.spread_mult, def.spread_mult) * config.base_spread
-				end)
-			end
+	local time = 0.1 -- Default to 0.1s
+	if initial_pthing then
+		local pos2 = minetest.get_pointed_thing_position(initial_pthing)
+		time = vector.distance(pos1, pos2) / config.projectile_speed
+	end
 
-			if pointed and pointed.type == "object" then
-					local target = pointed.ref
-					if target:get_player_name() ~= player:get_player_name() then
-						local point = pointed.intersection_point
-						local dmg = config.base_dmg * def.dmg_mult
-
-						-- Add 50% damage if headshot
-						if point.y > target:get_pos().y + 1.2 then
-							dmg = dmg * 1.5
-						end
-
-						-- Add 20% more damage if player using scope
-						if gunslinger.__scopes[player:get_player_name()] then
-							dmg = dmg * 1.2
-						end
-
-						target:punch(player, nil, {damage_groups = {fleshy = dmg}})
-					end
-				end
-
-			-- Projectile particle
-			minetest.add_particle({
-				pos = pos1,
-				velocity = vector.multiply(dir, config.projectile_speed),
-				acceleration = {x = 0, y = 0, z = 0},
-				expirationtime = 3,
-				size = 3,
-				collisiondetection = true,
-				collision_removal = true,
-				object_collision = true,
-				glow = 10
-			})
+	for i = 1, def.pellets do
+		-- Mimic inaccuracy by applying randomised miniscule deviations
+		if def.spread_mult ~= 0 then
+			dir = vector.apply(dir, function(n)
+				return n + random:next(-def.spread_mult, def.spread_mult) * config.base_spread
+			end)
 		end
 
-	else
-		--[[
-			Perform "deferred raycasting" to mimic projectile entities, without
-			actually using entities:
-				- Perform initial raycast to get position of target if it exists
-				- Calculate time taken for projectile to travel from gun to target
-				- Perform actual raycast after the calculated time
+		-- handle hitscan / projectile weapons
+		if def.hit_type == "hitscan" then
+			hit_target(player, pos1, dir, def, initial_pthing)
+		else
+			--[[
+				Perform "deferred raycasting" to mimic projectile entities, without
+				actually using entities:
+					- Perform initial raycast to get position of target if it exists
+					- Calculate time taken for projectile to travel from gun to target
+					- Perform actual raycast after the calculated time
 
-			This process throws in a couple more calculations and an extra raycast,
-			but the vastly improved realism at the cost of a negligible performance
-			hit is always great to have.
-		]]
-		local time = 0.1 -- Default to 0.1s
-		local initial_pthing = get_pointed_thing(pos1, dir, def)
-		if initial_pthing then
-			local pos2 = minetest.get_pointed_thing_position(initial_pthing)
-			time = vector.distance(pos1, pos2) / config.projectile_speed
+				This process throws in a couple more calculations and an extra raycast,
+				but the vastly improved realism at the cost of a negligible performance
+				hit is always great to have.
+			]]
+			minetest.after(time, hit_target, player, pos1, dir, def, 0)
 		end
 
-		for i = 1, def.pellets do
-			-- Mimic inaccuracy by applying randomised miniscule deviations
-			if def.spread_mult ~= 0 then
-				dir = vector.apply(dir, function(n)
-					return n + random:next(-def.spread_mult, def.spread_mult) * config.base_spread
-				end)
-			end
-
-			minetest.after(time, function(obj, pos, look_dir, gun_def)
-				local pointed = get_pointed_thing(pos, look_dir, gun_def)
-				if pointed and pointed.type == "object" then
-					local target = pointed.ref
-					if target:get_player_name() ~= obj:get_player_name() then
-						local point = pointed.intersection_point
-						local dmg = config.base_dmg * gun_def.dmg_mult
-
-						-- Add 50% damage if headshot
-						if point.y > target:get_pos().y + 1.2 then
-							dmg = dmg * 1.5
-						end
-
-						-- Add 20% more damage if player using scope
-						if gunslinger.__scopes[obj:get_player_name()] then
-							dmg = dmg * 1.2
-						end
-
-						target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
-					end
-				end
-			end, player, pos1, dir, def)
-
-			-- Projectile particle
-			minetest.add_particle({
-				pos = pos1,
-				velocity = vector.multiply(dir, config.projectile_speed),
-				acceleration = {x = 0, y = 0, z = 0},
-				expirationtime = 3,
-				size = 3,
-				collisiondetection = true,
-				collision_removal = true,
-				object_collision = true,
-				glow = 10
-			})
-		end
+		-- Projectile particle
+		minetest.add_particle({
+			pos = pos1,
+			velocity = vector.multiply(dir, config.projectile_speed),
+			acceleration = {x = 0, y = 0, z = 0},
+			expirationtime = 3,
+			size = 3,
+			collisiondetection = true,
+			collision_removal = true,
+			object_collision = true,
+			glow = 10
+		})
 	end
 
 	-- Simulate recoil
