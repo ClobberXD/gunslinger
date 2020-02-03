@@ -165,6 +165,7 @@ end
 -- hit the target
 local function hit_target(obj, pos, look_dir, gun_def, init_pointed)
 	-- this is here because of minetest.after
+	local pointed
 	if init_pointed ~= 0 then
 		pointed = init_pointed
 	else
