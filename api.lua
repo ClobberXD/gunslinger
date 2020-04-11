@@ -378,18 +378,18 @@ end
 
 function gunslinger.register_type(name, def)
 	assert(type(name) == "string" and type(def) == "table",
-	      "gunslinger.register_type: Invalid params!")
+		"gunslinger.register_type: Invalid params!")
 	assert(not gunslinger.__types[name], "gunslinger.register_type:" ..
-	      " Attempt to register a type with an existing name!")
+		" Attempt to register a type with an existing name!")
 
 	gunslinger.__types[name] = def
 end
 
 function gunslinger.register_gun(name, def)
 	assert(type(name) == "string" and type(def) == "table",
-	      "gunslinger.register_gun: Invalid params!")
+		"gunslinger.register_gun: Invalid params!")
 	assert(not gunslinger.__guns[name], "gunslinger.register_gun: " ..
-	      "Attempt to register a gun with an existing name!")
+		"Attempt to register a gun with an existing name!")
 
 	-- Import type defaults if def.type specified
 	if def.type then
