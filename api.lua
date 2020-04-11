@@ -206,7 +206,8 @@ local function fire(stack, player)
 		-- Mimic inaccuracy by applying randomised miniscule deviations
 		if def.spread_mult ~= 0 then
 			dir = vector.apply(dir, function(n)
-				return n + random:next(-def.spread_mult, def.spread_mult) * config.base_spread
+				return n +
+					random:next(-def.spread_mult, def.spread_mult) * config.base_spread
 			end)
 		end
 
@@ -215,13 +216,10 @@ local function fire(stack, player)
 			if pointed and pointed.type == "object" then
 				local target = pointed.ref
 				if target:get_player_name() ~= obj:get_player_name() then
-					local point = pointed.intersection_point
 					local dmg = config.base_dmg * gun_def.dmg_mult
 
-					-- Add 50% damage if headshot
-					if point.y > target:get_pos().y + 1.2 then
-						dmg = dmg * 1.5
-					end
+					-- FIXME: Actually improve accuracy while player is scoping in,
+					-- instead of simulating accuracy by increasing damage per shot.
 
 					-- Add 20% more damage if player using scope
 					if gunslinger.__scopes[obj:get_player_name()] then
