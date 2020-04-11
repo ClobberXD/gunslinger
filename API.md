@@ -12,7 +12,7 @@ The `gunslinger` namespace has the following members:
 
 - `__guns` [table]: Table of registered guns.
 - `__types` [table]: Table of registered types.
-- `__automatic` [table]: Table of players weilding automatic guns.
+- `__automatic` [table]: Table of players wielding automatic guns.
 - `__scopes` [table]: Table of HUD IDs of scope overlays.
 - `__interval` [table]: Table storing time from last fire; used to regulate fire-rate.
 
@@ -49,14 +49,14 @@ The `gunslinger` namespace has the following members:
   pos.y = pos.y + player:get_properties().eye_height
   ```
 
-- `player` [ObjectRef]: Player whose eye position is returned.
+- `player` [ObjectRef]: Player whose eye position is to be calculated.
 
-### `get_pointed_thing(pos, dir, def)`
+### `get_pointed_thing(pos, dir, range)`
 
-- Helper function that performs a raycast from player in the direction of player's look dir, and upto the range defined by `def.range`.
+- Helper function that performs a raycast from player in the direction of player's look dir, and up to the distance defined by `range`.
 - `pos` [table]: Initial position of raycast.
 - `dir` [table]: Direction of raycast.
-- `def` [table]: [Gun definition table](#gun-definition-table).
+- `range` [number]: Range of raycast from `pos` in nodes/meters.
 
 ### `play_sound(sound, obj)`
 

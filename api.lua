@@ -40,13 +40,13 @@ local function get_eye_pos(player)
 	return pos
 end
 
-local function get_pointed_thing(pos, dir, def)
-	if not pos or not dir or not def then
+local function get_pointed_thing(pos, dir, range)
+	if not pos or not dir or not range then
 		error("gunslinger: Invalid get_pointed_thing invocation" ..
 				" (missing params)", 2)
 	end
 
-	local pos2 = vector.add(pos, vector.multiply(dir, def.range))
+	local pos2 = vector.add(pos, vector.multiply(dir, range))
 	local ray = minetest.raycast(pos, pos2)
 	return ray:next()
 end
