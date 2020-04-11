@@ -203,11 +203,15 @@ local function fire(stack, player)
 	local random = PcgRandom(os.time())
 
 	for i = 1, def.pellets do
-		-- Mimic inaccuracy by applying randomised miniscule deviations
+		-- Mimic inaccuracy by applying randomized miniscule deviations
+		-- Reduce inaccuracy by half if player is using scope
 		if def.spread_mult ~= 0 then
+			-- TODO: Unhardcode scoping factor by taking scope FOVs into consideration
+			local scoping_factor = gunslinger.__scopes[player:get_player_name()] and 0.5 or 1
 			dir = vector.apply(dir, function(n)
 				return n +
-					random:next(-def.spread_mult, def.spread_mult) * config.base_spread
+					random:next(-def.spread_mult, def.spread_mult) *
+					config.base_spread * scoping_factor
 			end)
 		end
 
@@ -217,15 +221,6 @@ local function fire(stack, player)
 				local target = pointed.ref
 				if target:get_player_name() ~= obj:get_player_name() then
 					local dmg = config.base_dmg * gun_def.dmg_mult
-
-					-- FIXME: Actually improve accuracy while player is scoping in,
-					-- instead of simulating accuracy by increasing damage per shot.
-
-					-- Add 20% more damage if player using scope
-					if gunslinger.__scopes[obj:get_player_name()] then
-						dmg = dmg * 1.2
-					end
-
 					target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
 				end
 			end
