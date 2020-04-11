@@ -72,6 +72,12 @@ The `gunslinger` namespace has the following members:
 - `def` [table]: [Gun definition table](#gun-definition-table) of wielded item.
 - `stack` [itemstack]: Itemstack of wielded item.
 
+### `sanitize_def(def)`
+
+- Helper function to check for and correct erroneous fields and to add default values for missing fields in a Gun Definition Table.
+- Returns the sanitized version of `def`.
+- `def` [table]: [Gun Definition Table](#gun-definition-table) to be sanitized.
+
 ### `show_scope(player, scope, zoom)`
 
 - Activates gun scope, handles placement of HUD scope element.

@@ -65,7 +65,7 @@ local function add_auto(name, def, stack)
 	}
 end
 
-local function validate_def(def)
+local function sanitize_def(def)
 	if type(def) ~= "table" then
 		error("gunslinger.register_gun: Gun definition has to be a table!", 2)
 	end
@@ -400,7 +400,7 @@ function gunslinger.register_gun(name, def)
 		end
 	end
 
-	def = validate_def(def)
+	def = sanitize_def(def)
 
 	-- Add additional helper fields for internal use
 	def.unit_wear = math.ceil(config.max_wear / def.clip_size)
