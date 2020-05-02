@@ -26,7 +26,7 @@ local function rangelim(low, val, high, default)
 	elseif low and val and high then
 		return math.max(low, math.min(val, high))
 	else
-		error("gunslinger: Invalid rangelim invokation!", 2)
+		error("gunslinger: Invalid rangelim invocation!", 2)
 	end
 end
 
