@@ -148,11 +148,11 @@ local function reload(stack, player)
 		meta:set_string("reloading")
 		local wear = math.floor(config.max_wear -
 				(taken:get_count() / def.clip_size) * config.max_wear)
-		minetest.after(def.reload_time, function(obj, rstack, twear, s_meta)
-			rstack:set_wear(twear)
-			s_meta:set_string("reloading", "")
-			player:set_wielded_item(rstack)
-		end, player, stack, wear, meta)
+		minetest.after(def.reload_time, function()
+			stack:set_wear(wear)
+			meta:set_string("reloading", "")
+			player:set_wielded_item(stack)
+		end)
 	end
 
 	return stack
