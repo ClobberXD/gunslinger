@@ -333,7 +333,8 @@ end
 
 --------------------------------
 
-minetest.register_globalstep(function(dtime)
+-- Process automatic fire
+local function auto_fire(dtime)
 	for name in pairs(gunslinger.__interval) do
 		gunslinger.__interval[name] = gunslinger.__interval[name] + dtime
 	end
@@ -359,7 +360,9 @@ minetest.register_globalstep(function(dtime)
 			end
 		end
 	end
-end)
+end
+
+minetest.register_globalstep(auto_fire)
 
 --
 -- External API functions

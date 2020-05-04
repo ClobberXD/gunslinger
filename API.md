@@ -30,7 +30,7 @@ The `gunslinger` namespace has the following members:
 
 - Retrieves the [Gun definition table](#gun-definition-table).
 
-## Internal methods
+## Misc. helpers
 
 ### `rangelim(min, val, max, default)`
 
@@ -63,6 +63,8 @@ The `gunslinger` namespace has the following members:
 - Helper function to play object-centric sound.
 - `sound` [SimpleSoundSpec]: Sound to be played.
 - `obj` [ObjectRef]: ObjectRef which is the origin of the played sound.
+
+## Internal API methods
 
 ### `add_auto(name, def, stack)`
 
@@ -121,7 +123,7 @@ The `gunslinger` namespace has the following members:
 - Helper method to fire in burst mode.
 - Takes the same arguments as `on_lclick`.
 
-### `on_step(dtime)`
+### `auto_fire(dtime)`
 
 - Updates player's time from last shot (`gunslinger.__interval`).
 - Calls `fire` for all guns in the `automatic` table if player's LMB is pressed.
