@@ -8,9 +8,10 @@ gunslinger = {
 }
 
 local config = {
+	debug    = true,
 	max_wear = 65534,
-	projectile_speed = 500,
 	base_dmg = 1,
+	projectile_speed = 500,
 	base_spread = 0.001,
 	base_recoil = 0.001,
 	lite = minetest.settings:get_bool("gunslinger.lite")
