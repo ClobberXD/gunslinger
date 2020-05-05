@@ -100,8 +100,8 @@ local function sanitize_def(def)
 	def.zoom = def.zoom and rangelim(1, def.zoom, 8)
 
 	local scale = def.scope_scale
-	if not scale or type(scale) ~= "table" or not scale.x or not scale.y or
-			type(scale.x) ~= "number" or type(scale.y) ~= "number" then
+	if def.scope and (not scale or type(scale) ~= "table" or not scale.x or not scale.y or
+			type(scale.x) ~= "number" or type(scale.y) ~= "number") then
 		error("gunslinger: Invalid `scope_scale` definition!", 2)
 	end
 
