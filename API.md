@@ -1,6 +1,43 @@
 # `gunslinger` API documentation
 
-This file aims to thoroughly document the `gunslinger` API.
+This file aims to thoroughly document the `gunslinger` code-base and API.
+
+## Data structures
+
+### Gun Definition Table (GDT)
+
+- `itemdef` [table]: Item definition table passed to `minetest.register_item`.
+  - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
+- `clip_size` [number]: Number of rounds per-clip.
+- `fire_rate` [number]: Number of rounds per-second.
+- `range` [number]: Range of fire in number of nodes.
+- `mode` [string]: Firing mode.
+  - `"manual"`: One round per-click, but requires manual loading for every round; aka bolt-action rifles.
+  - `"semi-automatic"`: One round per-click. e.g. a typical 9mm pistol.
+  - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3. e.g. M16A4
+  - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
+  - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
+
+- `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo`.
+- `dmg_mult` [number]: Damage multiplier. Multiplied with `base_dmg` to obtain initial/rated damage value. Defaults to 1.
+- `spread_mult` [number]: Spread multiplier. Multiplied with `base_spread` to obtain spread threshold for projectile. Defaults to 0.
+- `recoil_mult` [number]: Recoil multiplier. Multiplied with `base_recoil` to obtain final recoil per-round. Defaults to 0.
+- `reload_time` [number]: Reload time in seconds. Defaults to 3 to match default reload sound.
+- `pellets` [number]: Number of pellets per-round. Used for firing multiple pellets shotgun-style. Defaults to 1, meaning only one "pellet" is fired each round.
+- `sounds` [table]: Sounds for various events.
+  - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire.ogg`.
+  - `reload` [string]: Sound played on reload. Defaults to `gunslinger_reload.ogg`.
+  - `ooa` [string]: Sound played when the gun is out of ammo and ammo isn't available in the player's inventory. Defaults to `gunslinger_ooa.ogg`.
+  - `load` [string]: Sound played when the gun is manually loaded. Only used if `mode` is set to `manual`.
+
+- `zoom` [number]: Zoom multiplier to be applied on player's default FOV.
+- `scope` [string]: Name of scope overlay texture.
+  - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.
+  - Only required if `zoom` is defined.
+- `scope_scale` [table]: Passed to `ObjectRef:hud_add` for the field `scale`.
+  - Needs to have two numerical values, indexed by `x` and `y`.
+  - Either of the values can be negative, and would be taken as the percentage of that direction to scale to.
+  - Only required if `scope` is defined.
 
 ## `gunslinger` namespace
 
@@ -19,16 +56,16 @@ The `gunslinger` namespace has the following members:
 ### `gunslinger.register_type(name, def)`
 
 - Registers a type for `name`.
-- `def` [table]: [Gun definition table](#gun-definition-table).
+- `def` [GDT]: Type defaults.
 
 ### `gunslinger.register_gun(name, def)`
 
 - Registers a gun with the name `name`.
-- `def` [table]: [Gun definition table](#gun-definition-table).
+- `def` [GDT]: Gun properties.
 
 ### `gunslinger.get_def(name)`
 
-- Retrieves the [Gun definition table](#gun-definition-table).
+- Retrieves the [GDT] of the given itemname. Returns `nil` if no registered gun matches `name`.
 
 ## Misc. helpers
 
@@ -71,14 +108,14 @@ The `gunslinger` namespace has the following members:
 - Helper function to add player entry to `automatic` table.
 - `def` and `stack` are cached locally for improved performance.
 - `name` [string]: Player name.
-- `def` [table]: [Gun definition table](#gun-definition-table) of wielded item.
+- `def` [GDT]: Wielded gun's GDT.
 - `stack` [itemstack]: Itemstack of wielded item.
 
 ### `sanitize_def(def)`
 
-- Helper function to check for and correct erroneous fields and to add default values for missing fields in a Gun Definition Table.
+- Helper function to check for and correct erroneous fields and to add default values for missing fields in a GDT.
 - Returns the sanitized version of `def`.
-- `def` [table]: [Gun Definition Table](#gun-definition-table) to be sanitized.
+- `def` [GDT]: GDT to be sanitized.
 
 ### `show_scope(player, scope, zoom)`
 
@@ -128,38 +165,3 @@ The `gunslinger` namespace has the following members:
 - Updates player's time from last shot (`gunslinger.__interval`).
 - Calls `fire` for all guns in the `automatic` table if player's LMB is pressed.
 - If LMB is released, the respective entry is removed from the table.
-
-## Gun Definition table
-
-- `itemdef` [table]: Item definition table passed to `minetest.register_item`.
-  - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
-- `clip_size` [number]: Number of rounds per-clip.
-- `fire_rate` [number]: Number of rounds per-second.
-- `range` [number]: Range of fire in number of nodes.
-- `mode` [string]: Firing mode.
-  - `"manual"`: One round per-click, but requires manual loading for every round; aka bolt-action rifles.
-  - `"semi-automatic"`: One round per-click. e.g. a typical 9mm pistol.
-  - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3. e.g. M16A4
-  - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
-  - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
-
-- `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo`.
-- `dmg_mult` [number]: Damage multiplier. Multiplied with `base_dmg` to obtain initial/rated damage value. Defaults to 1.
-- `spread_mult` [number]: Spread multiplier. Multiplied with `base_spread` to obtain spread threshold for projectile. Defaults to 0.
-- `recoil_mult` [number]: Recoil multiplier. Multiplied with `base_recoil` to obtain final recoil per-round. Defaults to 0.
-- `reload_time` [number]: Reload time in seconds. Defaults to 3 to match default reload sound.
-- `pellets` [number]: Number of pellets per-round. Used for firing multiple pellets shotgun-style. Defaults to 1, meaning only one "pellet" is fired each round.
-- `sounds` [table]: Sounds for various events.
-  - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire.ogg`.
-  - `reload` [string]: Sound played on reload. Defaults to `gunslinger_reload.ogg`.
-  - `ooa` [string]: Sound played when the gun is out of ammo and ammo isn't available in the player's inventory. Defaults to `gunslinger_ooa.ogg`.
-  - `load` [string]: Sound played when the gun is manually loaded. Only used if `mode` is set to `manual`.
-
-- `zoom` [number]: Zoom multiplier to be applied on player's default FOV.
-- `scope` [string]: Name of scope overlay texture.
-  - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.
-  - Only required if `zoom` is defined.
-- `scope_scale` [table]: Passed to `ObjectRef:hud_add` for the field `scale`.
-  - Needs to have two numerical values, indexed by `x` and `y`.
-  - Either of the values can be negative, and would be taken as the percentage of that direction to scale to.
-  - Only required if `scope` is defined.
