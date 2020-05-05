@@ -160,8 +160,23 @@ The `gunslinger` namespace has the following members:
 - Helper method to fire in burst mode.
 - Takes the same arguments as `on_lclick`.
 
+### `handle_hit_target(shooter, pthing, stack)`
+
+- Processes target hits. Currently only damages the target by `config.base_dmg * def.dmg_mult` HP.
+- `shooter` [ObjectRef]: Player firing the projectile that intersected the target.
+- `pthing` [pointed_thing]: Pointed thing corresponding to the intersected target.
+- `stack` [ItemStack]: Item used to fire the projectile that intersected the target.
+
 ### `auto_fire(dtime)`
 
 - Updates player's time from last shot (`gunslinger.__interval`).
 - Calls `fire` for all guns in the `automatic` table if player's LMB is pressed.
 - If LMB is released, the respective entry is removed from the table.
+- `dtime` [number]: Delta-time (in seconds) passed to all globalsteps.
+
+### `process_progressive_raycast(dtime)`
+
+- Processes all progressive raycast rounds each server step.
+- If the projectile intersects a target, `handle_hit_target` is invoked with the appropriate params.
+- If no targets are intersected, the projectile continues on its path.
+- `dtime` [number]: Delta-time (in seconds) passed to all globalsteps.
