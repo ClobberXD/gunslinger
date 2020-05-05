@@ -4,11 +4,11 @@ This file aims to thoroughly document the `gunslinger` API.
 
 ## `gunslinger` namespace
 
-(**Note**: _It's not recommended to directly access the private members of the `gunslinger` namespace_)
-
 The `gunslinger` namespace has the following members:
 
 ### "Private" members
+
+(**Note**: _It's not recommended to directly access the private members of the `gunslinger` namespace_)
 
 - `__guns` [table]: Table of registered guns.
 - `__types` [table]: Table of registered types.
@@ -155,6 +155,11 @@ The `gunslinger` namespace has the following members:
   - `ooa` [string]: Sound played when the gun is out of ammo and ammo isn't available in the player's inventory. Defaults to `gunslinger_ooa.ogg`.
   - `load` [string]: Sound played when the gun is manually loaded. Only used if `mode` is set to `manual`.
 
+- `zoom` [number]: Zoom multiplier to be applied on player's default FOV.
 - `scope` [string]: Name of scope overlay texture.
   - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.
-  - Requires `scope` to be defined.
+  - Only required if `zoom` is defined.
+- `scope_scale` [table]: Passed to `ObjectRef:hud_add` for the field `scale`.
+  - Needs to have two numerical values, indexed by `x` and `y`.
+  - Either of the values can be negative, and would be taken as the percentage of that direction to scale to.
+  - Only required if `scope` is defined.

@@ -14,7 +14,8 @@ local config = {
 	projectile_speed = 500,
 	base_spread = 0.001,
 	base_recoil = 0.001,
-	lite = minetest.settings:get_bool("gunslinger.lite")
+	lite = minetest.settings:get_bool("gunslinger.lite"),
+	fov_transition_time = 0.1
 }
 
 --
@@ -68,12 +69,12 @@ end
 
 local function sanitize_def(def)
 	if type(def) ~= "table" then
-		error("gunslinger.register_gun: Gun definition has to be a table!", 2)
+		error("gunslinger: Gun definition has to be a table!", 2)
 	end
 
 	if (def.mode == "automatic" or def.mode == "hybrid") and config.lite then
-		error("gunslinger.register_gun: Attempting to register gun of " ..
-				"type '" .. def.mode .. "' when lite mode is enabled", 2)
+		error("gunslinger: Attempting to register gun of type '" ..
+			def.mode .. "' when lite mode is enabled", 2)
 	end
 
 	if not def.ammo then
@@ -84,18 +85,24 @@ local function sanitize_def(def)
 		def.burst = rangelim(2, def.burst, 5, 3)
 	end
 
-	def.dmg_mult = rangelim(1, def.dmg_mult, 100, 1)
+	def.dmg_mult    = rangelim(1, def.dmg_mult, 100, 1)
 	def.reload_time = rangelim(1, def.reload_time, 10, 2.5)
 	def.spread_mult = rangelim(0, def.spread_mult, 500, 0)
 	def.recoil_mult = rangelim(0, def.recoil_mult, 500, 0)
-	def.pellets = rangelim(1, def.pellets, 20, 1)
+	def.pellets     = rangelim(1, def.pellets, 20, 1)
 
-	-- Initialize sounds
-	do
-		def.sounds = def.sounds or {}
-		def.sounds.fire = def.sounds.fire or "gunslinger_fire"
-		def.sounds.reload = def.sounds.reload or "gunslinger_reload"
-		def.sounds.ooa = def.sounds.ooa or "gunslinger_ooa"
+	def.sounds        = def.sounds or {}
+	def.sounds.fire   = def.sounds.fire or "gunslinger_fire"
+	def.sounds.reload = def.sounds.reload or "gunslinger_reload"
+	def.sounds.ooa    = def.sounds.ooa or "gunslinger_ooa"
+
+	-- Limit zoom to 8x; default to no zoom
+	def.zoom = def.zoom and rangelim(1, def.zoom, 8)
+
+	local scale = def.scope_scale
+	if not scale or type(scale) ~= "table" or not scale.x or not scale.y or
+			type(scale.x) ~= "number" or type(scale.y) ~= "number" then
+		error("gunslinger: Invalid `scope_scale` definition!", 2)
 	end
 
 	return def
@@ -103,18 +110,33 @@ end
 
 --------------------------------
 
-local function show_scope(player, scope, zoom)
+local function show_scope(player, zoom, scope, scale)
 	if not player then
 		return
 	end
 
-	-- Create HUD overlay element
-	gunslinger.__scopes[player:get_player_name()] = player:hud_add({
-		hud_elem_type = "image",
-		position = {x = 0.5, y = 0.5},
-		alignment = {x = 0, y = 0},
-		text = scope
-	})
+	local scope_spec = { fov = zoom }
+
+	-- Set FOV multiplier to 1 / def.zoom
+	-- e.g. if def.zoom == 4, FOV multiplier would be 1/4
+	player:set_fov(1 / zoom, true, config.fov_transition_time)
+
+	-- Scope HUD element; disable wielditem and crosshair HUD elements if scope exists
+	if scope then
+		scope_spec.hud = player:hud_add({
+			hud_elem_type = "image",
+			position = {x = 0.5, y = 0.5},
+			alignment = {x = 0, y = 0},
+			scale = scale,
+			text = scope
+		})
+		player:hud_set_flags({
+			wielditem = false,
+			crosshair = false
+		})
+	end
+
+	gunslinger.__scopes[player:get_player_name()] = scope_spec
 end
 
 local function hide_scope(player)
@@ -123,7 +145,19 @@ local function hide_scope(player)
 	end
 
 	local name = player:get_player_name()
-	player:hud_remove(gunslinger.__scopes[name])
+	local scope_spec = gunslinger.__scopes[name]
+
+	player:set_fov(0, false, config.fov_transition_time)
+
+	-- Remove scope HUD element; revert visibility changes to default HUD elements
+	if scope_spec.hud then
+		player:hud_remove(scope_spec.hud)
+		player:hud_set_flags({
+			wielditem = true,
+			crosshair = true
+		})
+	end
+
 	gunslinger.__scopes[name] = nil
 end
 
@@ -326,8 +360,8 @@ local function on_rclick(stack, player)
 	if gunslinger.__scopes[player:get_player_name()] then
 		hide_scope(player)
 	else
-		if def.scope then
-			show_scope(player, def.scope, def.gunslinger.__scopes)
+		if def.zoom then
+			show_scope(player, def.zoom, def.scope, def.scope_scale)
 		end
 	end
 end
