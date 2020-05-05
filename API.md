@@ -1,36 +1,75 @@
 # `gunslinger` API documentation
 
-This file aims to thoroughly document the `gunslinger` API.
+This file aims to thoroughly document the `gunslinger` code-base and API.
+
+## Data structures
+
+### Gun Definition Table (GDT)
+
+- `itemdef` [table]: Item definition table passed to `minetest.register_item`.
+  - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
+- `clip_size` [number]: Number of rounds per-clip.
+- `fire_rate` [number]: Number of rounds per-second.
+- `range` [number]: Range of fire in number of nodes.
+- `mode` [string]: Firing mode.
+  - `"manual"`: One round per-click, but requires manual loading for every round; aka bolt-action rifles.
+  - `"semi-automatic"`: One round per-click. e.g. a typical 9mm pistol.
+  - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3. e.g. M16A4
+  - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
+  - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
+- `hit_type` [string]: Weapon hit detection type, defaults to projectile.
+  - `"hitscan"`: Gun deals damage to the pointed target instantly, bullets have no travel time.
+  - `"projectile"`: Bullets are modeled as projectiles, more realistic. 
+- `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo`.
+- `dmg_mult` [number]: Damage multiplier. Multiplied with `base_dmg` to obtain initial/rated damage value. Defaults to 1.
+- `spread_mult` [number]: Spread multiplier. Multiplied with `base_spread` to obtain spread threshold for projectile. Defaults to 0.
+- `recoil_mult` [number]: Recoil multiplier. Multiplied with `base_recoil` to obtain final recoil per-round. Defaults to 0.
+- `reload_time` [number]: Reload time in seconds. Defaults to 3 to match default reload sound.
+- `pellets` [number]: Number of pellets per-round. Used for firing multiple pellets shotgun-style. Defaults to 1, meaning only one "pellet" is fired each round.
+- `sounds` [table]: Sounds for various events.
+  - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire.ogg`.
+  - `reload` [string]: Sound played on reload. Defaults to `gunslinger_reload.ogg`.
+  - `ooa` [string]: Sound played when the gun is out of ammo and ammo isn't available in the player's inventory. Defaults to `gunslinger_ooa.ogg`.
+  - `load` [string]: Sound played when the gun is manually loaded. Only used if `mode` is set to `manual`.
+
+- `zoom` [number]: Zoom multiplier to be applied on player's default FOV.
+- `scope` [string]: Name of scope overlay texture.
+  - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.
+  - Only required if `zoom` is defined.
+- `scope_scale` [table]: Passed to `ObjectRef:hud_add` for the field `scale`.
+  - Needs to have two numerical values, indexed by `x` and `y`.
+  - Either of the values can be negative, and would be taken as the percentage of that direction to scale to.
+  - Only required if `scope` is defined.
 
 ## `gunslinger` namespace
-
-(**Note**: _It's not recommended to directly access the private members of the `gunslinger` namespace_)
 
 The `gunslinger` namespace has the following members:
 
 ### "Private" members
 
+(**Note**: _It's not recommended to directly access the private members of the `gunslinger` namespace_)
+
 - `__guns` [table]: Table of registered guns.
 - `__types` [table]: Table of registered types.
-- `__automatic` [table]: Table of players weilding automatic guns.
+- `__automatic` [table]: Table of players wielding automatic guns.
 - `__scopes` [table]: Table of HUD IDs of scope overlays.
 - `__interval` [table]: Table storing time from last fire; used to regulate fire-rate.
 
 ### `gunslinger.register_type(name, def)`
 
 - Registers a type for `name`.
-- `def` [table]: [Gun definition table](#gun-definition-table).
+- `def` [GDT]: Type defaults.
 
 ### `gunslinger.register_gun(name, def)`
 
 - Registers a gun with the name `name`.
-- `def` [table]: [Gun definition table](#gun-definition-table).
+- `def` [GDT]: Gun properties.
 
 ### `gunslinger.get_def(name)`
 
-- Retrieves the [Gun definition table](#gun-definition-table).
+- Retrieves the [GDT] of the given itemname. Returns `nil` if no registered gun matches `name`.
 
-## Internal methods
+## Misc. helpers
 
 ### `rangelim(min, val, max, default)`
 
@@ -49,14 +88,14 @@ The `gunslinger` namespace has the following members:
   pos.y = pos.y + player:get_properties().eye_height
   ```
 
-- `player` [ObjectRef]: Player whose eye position is returned.
+- `player` [ObjectRef]: Player whose eye position is to be calculated.
 
-### `get_pointed_thing(pos, dir, def)`
+### `get_pointed_thing(pos, dir, range)`
 
-- Helper function that performs a raycast from player in the direction of player's look dir, and upto the range defined by `def.range`.
+- Helper function that performs a raycast from player in the direction of player's look dir, and up to the distance defined by `range`.
 - `pos` [table]: Initial position of raycast.
 - `dir` [table]: Direction of raycast.
-- `def` [table]: [Gun definition table](#gun-definition-table).
+- `range` [number]: Range of raycast from `pos` in nodes/meters.
 
 ### `play_sound(sound, obj)`
 
@@ -64,13 +103,21 @@ The `gunslinger` namespace has the following members:
 - `sound` [SimpleSoundSpec]: Sound to be played.
 - `obj` [ObjectRef]: ObjectRef which is the origin of the played sound.
 
+## Internal API methods
+
 ### `add_auto(name, def, stack)`
 
 - Helper function to add player entry to `automatic` table.
 - `def` and `stack` are cached locally for improved performance.
 - `name` [string]: Player name.
-- `def` [table]: [Gun definition table](#gun-definition-table) of wielded item.
+- `def` [GDT]: Wielded gun's GDT.
 - `stack` [itemstack]: Itemstack of wielded item.
+
+### `sanitize_def(def)`
+
+- Helper function to check for and correct erroneous fields and to add default values for missing fields in a GDT.
+- Returns the sanitized version of `def`.
+- `def` [GDT]: GDT to be sanitized.
 
 ### `show_scope(player, scope, zoom)`
 
@@ -104,9 +151,23 @@ The `gunslinger` namespace has the following members:
 - Reloads stack if ammo exists and plays `def.sounds.reload`. Otherwise, just plays `def.sounds.ooa`.
 - Takes the same arguments as `on_lclick`.
 
+### `hit_target(obj, pos, look_dir, gun_def, pointed)`
+
+- Common function that deals damage to target, called by the different hit_type functions.
+
+### `hitscan(obj, pos, look_dir, gun_def)`
+
+- hit_type function that uses hitscan to select target.
+
+### `deferred(obj, pos, look_dir, gun_def)`
+
+- hit_type function that uses deferred raycasting to select target.
+
 ### `fire(stack, player)`
 
-- Responsible for firing one single round and dealing damage if target was hit. Updates wear by `def.unit_wear`.
+- Responsible for calculating wear, adding recoil and inaccuracy.
+- Calls one of the hit_type functions to do the target selecting.
+- Updates wear by `def.unit_wear`.
 - If gun is worn out, `reload` is called.
 - Takes the same arguments as `on_lclick`.
 
@@ -115,42 +176,8 @@ The `gunslinger` namespace has the following members:
 - Helper method to fire in burst mode.
 - Takes the same arguments as `on_lclick`.
 
-### `on_step(dtime)`
+### `auto_fire(dtime)`
 
 - Updates player's time from last shot (`gunslinger.__interval`).
 - Calls `fire` for all guns in the `automatic` table if player's LMB is pressed.
 - If LMB is released, the respective entry is removed from the table.
-
-## Gun Definition table
-
-- `itemdef` [table]: Item definition table passed to `minetest.register_item`.
-  - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
-- `clip_size` [number]: Number of rounds per-clip.
-- `fire_rate` [number]: Number of rounds per-second.
-- `range` [number]: Range of fire in number of nodes.
-- `mode` [string]: Firing mode.
-  - `"manual"`: One round per-click, but requires manual loading for every round; aka bolt-action rifles.
-  - `"semi-automatic"`: One round per-click. e.g. a typical 9mm pistol.
-  - `"burst"`: Multiple rounds per-click. Can be set by defining `burst` field. Defaults to 3. e.g. M16A4
-  - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
-  - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
-
-- `hit_type` [string]: Weapon hit detection type, defaults to projectile.
-  - `"hitscan"`: Gun deals damage to the pointed target instantly, bullets have no travel time.
-  - `"projectile"`: Bullets are modeled as projectiles, more realistic. 
-
-- `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo`.
-- `dmg_mult` [number]: Damage multiplier. Multiplied with `base_dmg` to obtain initial/rated damage value. Defaults to 1.
-- `spread_mult` [number]: Spread multiplier. Multiplied with `base_spread` to obtain spread threshold for projectile. Defaults to 0.
-- `recoil_mult` [number]: Recoil multiplier. Multiplied with `base_recoil` to obtain final recoil per-round. Defaults to 0.
-- `reload_time` [number]: Reload time in seconds. Defaults to 3 to match default reload sound.
-- `pellets` [number]: Number of pellets per-round. Used for firing multiple pellets shotgun-style. Defaults to 1, meaning only one "pellet" is fired each round.
-- `sounds` [table]: Sounds for various events.
-  - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire.ogg`.
-  - `reload` [string]: Sound played on reload. Defaults to `gunslinger_reload.ogg`.
-  - `ooa` [string]: Sound played when the gun is out of ammo and ammo isn't available in the player's inventory. Defaults to `gunslinger_ooa.ogg`.
-  - `load` [string]: Sound played when the gun is manually loaded. Only used if `mode` is set to `manual`.
-
-- `scope` [string]: Name of scope overlay texture.
-  - Overlay texture would be stretched across the screen, and center of texture will be positioned on top of crosshair.
-  - Requires `scope` to be defined.

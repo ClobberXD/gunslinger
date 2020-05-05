@@ -66,6 +66,7 @@ local function add_auto(name, def, stack)
 end
 
 local function validate_def(def)
+	-- lmao
 	if type(def) ~= "table" then
 		error("gunslinger.register_gun: Gun definition has to be a table!", 2)
 	end
@@ -163,34 +164,38 @@ local function reload(stack, player)
 end
 
 -- hit the target
-local function hit_target(obj, pos, look_dir, gun_def, init_pointed)
-	-- this is here because of minetest.after
-	local pointed
-	if init_pointed ~= 0 then
-		pointed = init_pointed
-	else
-		pointed = get_pointed_thing(pos, look_dir, gun_def)
-	end
-
+local function hit_target(obj, pos, look_dir, gun_def, pointed)
 	if pointed and pointed.type == "object" then
 		local target = pointed.ref
 		if target:get_player_name() ~= obj:get_player_name() then
 			local point = pointed.intersection_point
 			local dmg = config.base_dmg * gun_def.dmg_mult
-
-			-- Add 50% damage if headshot
-			if point.y > target:get_pos().y + 1.2 then
-				dmg = dmg * 1.5
-			end
-
-			-- Add 20% more damage if player using scope
-			if gunslinger.__scopes[obj:get_player_name()] then
-				dmg = dmg * 1.2
-			end
-
 			target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
 		end
 	end
+end
+
+-- just hit whatever is under the crosshair
+local function hitscan(obj, pos, look_dir, gun_def)
+	pointed = get_pointed_thing(pos, look_dir, gun_def)
+	-- smh
+	hit_target(obj, pos, look_dir, gun_def, pointed)
+end
+
+-- deferred raycasting, refer docs
+local function deferred(obj, pos, look_dir, gun_def)
+	local initial_pthing = get_pointed_thing(pos, look_dir, gun_def)
+
+	local time = 0.1 -- Default to 0.1s
+	if initial_pthing then
+		local target_pos = minetest.get_pointed_thing_position(initial_pthing)
+		time = vector.distance(pos, target_pos) / config.projectile_speed
+	end
+
+	minetest.after(time, function(player, eye_pos, dir, def)
+		final_pthing = get_pointed_thing(eye_pos, dir, def)
+		hit_target(player, eye_pos, dir, def, final_pthing)
+	end, obj, pos, look_dir, gun_def)
 end
 
 local function fire(stack, player)
@@ -217,38 +222,24 @@ local function fire(stack, player)
 	pos1 = vector.add(pos1, dir)
 	local random = PcgRandom(os.time())
 
-	local initial_pthing = get_pointed_thing(pos1, dir, def)
-
-	local time = 0.1 -- Default to 0.1s
-	if initial_pthing then
-		local pos2 = minetest.get_pointed_thing_position(initial_pthing)
-		time = vector.distance(pos1, pos2) / config.projectile_speed
-	end
-
 	for i = 1, def.pellets do
-		-- Mimic inaccuracy by applying randomised miniscule deviations
+		-- Mimic inaccuracy by applying randomized miniscule deviations
+		-- Reduce inaccuracy by half if player is using scope
 		if def.spread_mult ~= 0 then
+			-- TODO: Unhardcode scoping factor by taking scope FOVs into consideration
+			local scoping_factor = gunslinger.__scopes[player:get_player_name()] and 0.5 or 1
 			dir = vector.apply(dir, function(n)
-				return n + random:next(-def.spread_mult, def.spread_mult) * config.base_spread
+				return n +
+					random:next(-def.spread_mult, def.spread_mult) *
+					config.base_spread * scoping_factor
 			end)
 		end
 
-		-- handle hitscan / projectile weapons
+		-- hit_type selector
 		if def.hit_type == "hitscan" then
-			hit_target(player, pos1, dir, def, initial_pthing)
-		else
-			--[[
-				Perform "deferred raycasting" to mimic projectile entities, without
-				actually using entities:
-					- Perform initial raycast to get position of target if it exists
-					- Calculate time taken for projectile to travel from gun to target
-					- Perform actual raycast after the calculated time
-
-				This process throws in a couple more calculations and an extra raycast,
-				but the vastly improved realism at the cost of a negligible performance
-				hit is always great to have.
-			]]
-			minetest.after(time, hit_target, player, pos1, dir, def, 0)
+			hitscan(player, pos1, dir, def)
+		elseif def.hit_type == "projectile" then
+			deferred(player, pos1, dir, def)
 		end
 
 		-- Projectile particle
