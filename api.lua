@@ -66,7 +66,6 @@ local function add_auto(name, def, stack)
 end
 
 local function validate_def(def)
-	-- lmao
 	if type(def) ~= "table" then
 		error("gunslinger.register_gun: Gun definition has to be a table!", 2)
 	end
