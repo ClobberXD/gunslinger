@@ -109,6 +109,9 @@ local function sanitize_def(def)
 	def.sounds.reload = def.sounds.reload or "gunslinger_reload"
 	def.sounds.ooa    = def.sounds.ooa or "gunslinger_ooa"
 
+	def.textures = def.textures or {}
+	def.textures.projectile = def.textures.projectile or "gunslinger_projectile.png"
+
 	-- Limit zoom to 8x; default to no zoom
 	def.zoom = def.zoom and rangelim(1, def.zoom, 8)
 
@@ -265,9 +268,9 @@ local function fire(stack, player)
 		minetest.add_particle({
 			pos = pos,
 			velocity = vector.multiply(dir, config.projectile_speed),
-			acceleration = {x = 0, y = 0, z = 0},
 			expirationtime = def.range / config.projectile_speed,
 			size = 3,
+			texture = def.textures.projectile,
 			collisiondetection = true,
 			collision_removal = true,
 			object_collision = true,

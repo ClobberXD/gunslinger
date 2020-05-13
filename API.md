@@ -24,6 +24,10 @@ This file aims to thoroughly document the `gunslinger` code-base and API.
 - `recoil_mult` [number]: Recoil multiplier. Multiplied with `base_recoil` to obtain final recoil per-round. Defaults to 0.
 - `reload_time` [number]: Reload time in seconds. Defaults to 3 to match default reload sound.
 - `pellets` [number]: Number of pellets per-round. Used for firing multiple pellets shotgun-style. Defaults to 1, meaning only one "pellet" is fired each round.
+
+- `textures` [table]: Textures for various requirements.
+  `projectile` [string]: Texture used for projectiles.
+
 - `sounds` [table]: Sounds for various events.
   - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire.ogg`.
   - `reload` [string]: Sound played on reload. Defaults to `gunslinger_reload.ogg`.
