@@ -2,6 +2,8 @@ gunslinger = {
 	__stack = {},
 	__guns = {},
 	__types = {},
+	__rounds = {},
+	__reloading = {},
 	__automatic = {},
 	__scopes = {},
 	__interval = {}
@@ -17,6 +19,9 @@ local config = {
 	lite = minetest.settings:get_bool("gunslinger.lite"),
 	fov_transition_time = 0.1
 }
+
+local random = PcgRandom(os.time())
+local vec = table.copy(vector)
 
 --
 -- Internal API functions
@@ -42,15 +47,23 @@ local function get_eye_pos(player)
 	return pos
 end
 
-local function get_pointed_thing(pos, dir, range)
+local function get_pointed_thing(pos, dir, range, avoid_self)
 	if not pos or not dir or not range then
 		error("gunslinger: Invalid get_pointed_thing invocation" ..
-				" (missing params)", 2)
+			" (missing params)", 2)
 	end
 
 	local pos2 = vector.add(pos, vector.multiply(dir, range))
 	local ray = minetest.raycast(pos, pos2)
-	return ray:next()
+	local pthing = ray:next()
+
+	-- pointer.intersection_normal is a zero vector
+	-- if ray originates from inside pointed_thing
+	if avoid_self and pthing and
+			vector.equals(pthing.intersection_normal, vector.new(0, 0, 0)) then
+		pthing = ray:next()
+	end
+	return pthing
 end
 
 local function play_sound(sound, player)
@@ -198,6 +211,7 @@ local function fire(stack, player)
 		return
 	end
 
+	local name = player:get_player_name()
 	local def = gunslinger.__guns[stack:get_name()]
 	if not def then
 		return stack
@@ -205,44 +219,23 @@ local function fire(stack, player)
 
 	local wear = stack:get_wear()
 	if wear == config.max_wear then
-		gunslinger.__automatic[player:get_player_name()] = nil
+		gunslinger.__automatic[name] = nil
 		return reload(stack, player)
 	end
 
 	-- Play gunshot sound
 	play_sound(def.sounds.fire, player)
 
-	--[[
-		Perform "deferred raycasting" to mimic projectile entities, without
-		actually using entities:
-			- Perform initial raycast to get position of target if it exists
-			- Calculate time taken for projectile to travel from gun to target
-			- Perform actual raycast after the calculated time
-
-		This process throws in a couple more calculations and an extra raycast,
-		but the vastly improved realism at the cost of a negligible performance
-		hit is always great to have.
-	]]
-	local time = 0.1 -- Default to 0.1s
-
+	local pos = get_eye_pos(player)
 	local dir = player:get_look_dir()
 
-	local pos1 = get_eye_pos(player)
-	pos1 = vector.add(pos1, dir)
-	local initial_pthing = get_pointed_thing(pos1, dir, def)
-	if initial_pthing then
-		local pos2 = minetest.get_pointed_thing_position(initial_pthing)
-		time = vector.distance(pos1, pos2) / config.projectile_speed
-	end
-
-	local random = PcgRandom(os.time())
-
+	-- Apply projectile engine to each pellet
 	for i = 1, def.pellets do
 		-- Mimic inaccuracy by applying randomized miniscule deviations
 		-- Reduce inaccuracy by half if player is using scope
 		if def.spread_mult ~= 0 then
 			-- TODO: Unhardcode scoping factor by taking scope FOVs into consideration
-			local scoping_factor = gunslinger.__scopes[player:get_player_name()] and 0.5 or 1
+			local scoping_factor = gunslinger.__scopes[name] and 0.5 or 1
 			dir = vector.apply(dir, function(n)
 				return n +
 					random:next(-def.spread_mult, def.spread_mult) *
@@ -250,23 +243,30 @@ local function fire(stack, player)
 			end)
 		end
 
-		minetest.after(time, function(obj, pos, look_dir, gun_def)
-			local pointed = get_pointed_thing(pos, look_dir, gun_def)
-			if pointed and pointed.type == "object" then
-				local target = pointed.ref
-				if target:get_player_name() ~= obj:get_player_name() then
-					local dmg = config.base_dmg * gun_def.dmg_mult
-					target:punch(obj, nil, {damage_groups = {fleshy = dmg}})
-				end
-			end
-		end, player, pos1, dir, def)
+		--
+		-- Progressive Raycasting
+		--
+		-- Tracks and simulates individual projectiles until they hit a target
+		--
+
+		-- Insert round_spec
+		gunslinger.__rounds[#gunslinger.__rounds + 1] = {
+			shooter = name,
+			stack   = player:get_wielded_item(),
+
+			initial_pos = pos,
+			pos   = pos,
+			dir   = dir,
+			range = def.range,
+			speed = config.projectile_speed
+		}
 
 		-- Projectile particle
 		minetest.add_particle({
-			pos = pos1,
+			pos = pos,
 			velocity = vector.multiply(dir, config.projectile_speed),
 			acceleration = {x = 0, y = 0, z = 0},
-			expirationtime = 3,
+			expirationtime = def.range / config.projectile_speed,
 			size = 3,
 			collisiondetection = true,
 			collision_removal = true,
@@ -303,6 +303,74 @@ local function burst_fire(stack, player)
 
 	return gunslinger.__stack[player:get_player_name()]
 end
+
+--------------------------------
+
+local function handle_hit_target(shooter, pthing, stack)
+	-- TODO: Run on_hit callbacks here
+
+	if config.debug then
+		local pthing_str
+		if pthing.type == "object" then
+			local obj = pthing.ref
+			if obj:is_player() then
+				pthing_str = "[Player] " .. obj:get_player_name()
+			else
+				pthing_str = "[Entity] " .. obj:get_luaentity()
+			end
+		else
+			pthing_str = minetest.get_node(pthing.under).name
+		end
+
+		minetest.chat_send_all("handle_hit_target\n-----------------" ..
+			"\n\tstack=" .. stack:to_string() .. "\n\tpthing=" .. pthing_str)
+	end
+
+	if pthing.type == "object" then
+		pthing.ref:punch(shooter, nil, {damage_groups = {
+			fleshy = config.base_dmg * gunslinger.__guns[stack:get_name()].dmg_mult
+		}})
+	end
+end
+
+--------------------------------
+
+-- Progressive Raycasting
+local function process_progressive_raycast(dtime)
+	for i, round_spec in pairs(gunslinger.__rounds) do
+		-- Calculate distance projectile can travel until next iteration
+		local delta_range = round_spec.speed * dtime
+		local pointed = get_pointed_thing(round_spec.pos,
+			round_spec.dir, delta_range, true)
+
+		-- We've hit something!
+		if pointed then
+			gunslinger.__rounds[i] = nil
+
+			-- Invoke handle_hit_target, pass the required data
+			handle_hit_target(minetest.get_player_by_name(round_spec.shooter),
+				pointed, round_spec.stack)
+		end
+
+		-- We've hit nothing; continue tracking projectile
+		local prev_pos = round_spec.pos
+		round_spec.pos = vec.add(round_spec.pos,
+			vec.multiply(round_spec.dir, delta_range))
+		round_spec.dir = vec.direction(prev_pos, round_spec.pos)
+
+		-- Spawn particles
+		if config.debug then
+			minetest.add_particle({
+				pos = prev_pos,
+				expirationtime = 10,
+				size = 10,
+				glow = 10
+			})
+		end
+	end
+end
+
+minetest.register_globalstep(process_progressive_raycast)
 
 --------------------------------
 
