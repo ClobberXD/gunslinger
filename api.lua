@@ -8,7 +8,7 @@ gunslinger = {
 }
 
 local config = {
-	debug    = true,
+	debug    = minetest.settings:get_bool("gunslinger.debug", false),
 	max_wear = 65534,
 	base_dmg = 1,
 	projectile_speed = 500,
