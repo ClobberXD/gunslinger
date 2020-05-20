@@ -27,6 +27,7 @@ This file aims to thoroughly document the `gunslinger` code-base and API.
 
 - `textures` [table]: Textures for various requirements.
   `projectile` [string]: Texture used for projectiles.
+  - Note that assymmetric textures aren't supported. A texture modelled after a bullet-like shape won't point in the direction of flight.
 
 - `sounds` [table]: Sounds for various events.
   - `fire` [string]: Sound played on fire. Defaults to `gunslinger_fire.ogg`.
