@@ -471,8 +471,12 @@ end
 minetest.register_globalstep(auto_fire)
 
 --
--- External API functions
+-- Public API functions
 --
+
+function gunslinger.get_config()
+	return table.copy(config)
+end
 
 function gunslinger.get_def(name)
 	return gunslinger.__guns[name]

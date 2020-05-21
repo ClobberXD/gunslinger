@@ -72,6 +72,11 @@ The `gunslinger` namespace has the following members:
 
 - Retrieves the [GDT] of the given itemname. Returns `nil` if no registered gun matches `name`.
 
+### `gunslinger.get_config(name)`
+
+- Returns the gunslinger's internal config table (read-only). This table contains, among others, configuration settings and default values used by the API internally. e.g `debug` [bool].
+- TODO: Improve this section.
+
 ## Misc. helpers
 
 ### `rangelim(min, val, max, default)`
