@@ -22,25 +22,34 @@ been taken from the `shooter` modpack by stujones11.
 
 ## Architecture
 
-- Gunslinger makes use of gun _types_ in order to ease registration of similar
-guns.
-  - A `type` is made up of a name and a table of default values to be applied
-  to all guns registered with that type.
-  - Types are optional, and can also be omitted altogether.
-  - Guns are allowed to override their type defaults, for maximum customizability.
-- Each type/gun needs to be associated with ammo (registered using
-  `gunslinger.register_ammo`).
-  - If a weapon def doesn't explicitly define the appropriate field ammo, it will
-    be automatically linked with the default ammo provided by Gunslinger.
-- Gunslinger uses the term "Projectile Engine" to refer to the code that handles
-  the tracking and control of fired projectiles.
-- Once a projectile hits a target, the target is damaged equivalent to:
-  `base_dmg * def.dmg_mult` (base damage * gun's damage multiplier)
-  - TODO: The default damage handling would be overridable by using on_hit
-    callbacks. If a gun specifies an `on_hit` callback, the default damage code
-    would be ignored.
+### Type inheritance
 
-### Progressive Raycast
+Gunslinger makes use of gun _types_ in order to ease registration of similar
+guns. A `type` is made up of a name and a table of default values to be applied
+to all guns registered with that type. Types are optional, and can also be
+omitted altogether. Guns are allowed to override their type defaults, for
+maximum customizability.
+
+### Ammo
+
+Each type/gun needs to be associated with ammo (registered using
+`gunslinger.register_ammo`). If a weapon definition doesn't explicitly define the
+appropriate field, it will be automatically linked with the default ammo provided
+by Gunslinger.
+
+### Projectile Engine
+
+Gunslinger uses the term "Projectile Engine" to refer to the code that handles
+the tracking and control of fired projectiles. Once a projectile hits a target,
+the damage to the target is equivalent to:
+
+`base_dmg * def.dmg_mult` (base damage * gun's damage multiplier)
+
+TODO: The default damage handling would be overridable by using on_hit callbacks.
+If a gun specifies an `on_hit` callback, the default damage code would be
+ignored.
+
+#### Progressive Raycast
 
 Progressive Raycast is the default projectile engine of Gunslinger. It technique
 works by simulating the movement of a projectile along its trajectory every
