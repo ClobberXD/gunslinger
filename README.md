@@ -9,9 +9,6 @@ mod, and can be disabled if required (see [Settings](#settings)).
 - **Code**: MIT
 - **Media**: CC0
 
-`gunslinger_ammo.png` (placeholder ammo texture until a better one comes by) has
-been taken from the `shooter` modpack by stujones11.
-
 ## Settings
 
 - `gunslinger.lite` [`bool`] (defaults to `false`)
