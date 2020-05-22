@@ -28,7 +28,11 @@ guns.
   to all guns registered with that type.
   - Types are optional, and can also be omitted altogether.
   - Guns are allowed to override their type defaults, for maximum customizability.
-- Gunslinger uses the term "projectile engine" to refer to the code that handles
+- Each type/gun needs to be associated with ammo (registered using
+  `gunslinger.register_ammo`).
+  - If a weapon def doesn't explicitly define the appropriate field ammo, it will
+    be automatically linked with the default ammo provided by Gunslinger.
+- Gunslinger uses the term "Projectile Engine" to refer to the code that handles
   the tracking and control of fired projectiles.
 - Once a projectile hits a target, the target is damaged equivalent to:
   `base_dmg * def.dmg_mult` (base damage * gun's damage multiplier)
@@ -38,7 +42,7 @@ guns.
 
 ### Progressive Raycast
 
-Progressive Raycast is the default projectile engine of gunslinger. It technique
+Progressive Raycast is the default projectile engine of Gunslinger. It technique
 works by simulating the movement of a projectile along its trajectory every
 server step. Once a target is hit by a projectile, the default damage code is run.
 

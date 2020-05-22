@@ -4,10 +4,16 @@ This file aims to thoroughly document the `gunslinger` code-base and API.
 
 ## Data structures
 
+### Ammo Definition Table
+
+- `itemdef` [table]: Item definition table passed to `minetest.register_item`.
+  - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden by gunslinger.
+
 ### Gun Definition Table (GDT)
 
 - `itemdef` [table]: Item definition table passed to `minetest.register_item`.
-  - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden.
+  - Note that `on_use`, `on_place`, and `on_secondary_use` will be overridden by gunslinger.
+- `type` [string]: Type to inherit initial weapon properties from.
 - `clip_size` [number]: Number of rounds per-clip.
 - `fire_rate` [number]: Number of rounds per-second.
 - `range` [number]: Range of fire in number of nodes.
@@ -18,7 +24,7 @@ This file aims to thoroughly document the `gunslinger` code-base and API.
   - `"automatic"`: Fully automatic; shoots as long as primary button is held down. e.g. AKM, M416.
   - `"hybrid"`: Same as `"automatic"`, but switches to `"burst"` mode when scope view is toggled.
 
-- `ammo` [string]: Name of valid registered item to be used as ammo for the gun. Defaults to `gunslinger:ammo`.
+- `ammo` [string]: Name of valid registered ammo to be associated with the weapon. Defaults to `gunslinger:ammo`.
 - `dmg_mult` [number]: Damage multiplier. Multiplied with `base_dmg` to obtain initial/rated damage value. Defaults to 1.
 - `spread_mult` [number]: Spread multiplier. Multiplied with `base_spread` to obtain spread threshold for projectile. Defaults to 0.
 - `recoil_mult` [number]: Recoil multiplier. Multiplied with `base_recoil` to obtain final recoil per-round. Defaults to 0.
@@ -57,6 +63,11 @@ The `gunslinger` namespace has the following members:
 - `__automatic` [table]: Table of players wielding automatic guns.
 - `__scopes` [table]: Table of HUD IDs of scope overlays.
 - `__interval` [table]: Table storing time from last fire; used to regulate fire-rate.
+
+### `gunslinger.register_ammo(name, def)`
+
+- Registers ammo.
+- `def` [ADT]: Ammo properties. ADTs currently only support the `itemdef` field, but
 
 ### `gunslinger.register_type(name, def)`
 

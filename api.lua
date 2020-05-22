@@ -1,12 +1,13 @@
 gunslinger = {
-	__stack = {},
-	__guns = {},
-	__types = {},
-	__rounds = {},
+	__guns      = {},
+	__ammo      = {},
+	__types     = {},
+	__stack     = {},
+	__rounds    = {},
 	__reloading = {},
 	__automatic = {},
-	__scopes = {},
-	__interval = {}
+	__scopes    = {},
+	__interval  = {}
 }
 
 local config = {
@@ -90,8 +91,11 @@ local function sanitize_def(def)
 			def.mode .. "' when lite mode is enabled", 2)
 	end
 
-	if not def.ammo then
-		def.ammo = "gunslinger:ammo"
+	-- Check for ammo
+	if def.ammo then
+		assert(gunslinger.__ammo[def.ammo], "gunslinger.register_gun: Invalid ammo!")
+	else
+		def.ammo = "gunslinger:default_ammo"
 	end
 
 	if def.mode == "burst" then
@@ -482,11 +486,25 @@ function gunslinger.get_def(name)
 	return gunslinger.__guns[name]
 end
 
+function gunslinger.register_ammo(name, def)
+	assert(type(name) == "string" and type(def) == "table",
+		"gunslinger.register_ammo: Invalid params!")
+	assert(not gunslinger.__ammo[name], "gunslinger.register_ammo:" ..
+		" Attempt to register new ammo with an existing name!")
+
+	-- TODO: Generalize sanitize_def to work with all definition tables
+	assert(def.itemdef and type(def.itemdef) == "table",
+		"gunslinger.register_ammo: Invalid Ammo Definition Table!")
+
+	gunslinger.__ammo[name] = def
+	minetest.register_craftitem(name, def.itemdef)
+end
+
 function gunslinger.register_type(name, def)
 	assert(type(name) == "string" and type(def) == "table",
 		"gunslinger.register_type: Invalid params!")
 	assert(not gunslinger.__types[name], "gunslinger.register_type:" ..
-		" Attempt to register a type with an existing name!")
+		" Attempt to register new type with an existing name!")
 
 	gunslinger.__types[name] = def
 end
@@ -495,9 +513,10 @@ function gunslinger.register_gun(name, def)
 	assert(type(name) == "string" and type(def) == "table",
 		"gunslinger.register_gun: Invalid params!")
 	assert(not gunslinger.__guns[name], "gunslinger.register_gun: " ..
-		"Attempt to register a gun with an existing name!")
+		"Attempt to register new gun with an existing name!")
 
 	-- Import type defaults if def.type specified
+	-- This should be the first field to be parsed for the types system to work properly
 	if def.type then
 		assert(gunslinger.__types[def.type], "gunslinger.register_gun: Invalid type!")
 
